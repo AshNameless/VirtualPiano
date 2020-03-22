@@ -8,11 +8,12 @@ package subpros is
 	--Audio_Controller
 	--将识别模块输出的24位信号进行转化，只保留第一个1，其余位全部置为0
 	function rawnote2note(ndata : std_logic_vector(notes_data_width - 1 downto 0)) return std_logic_vector;
+	--将音符信号转化为对应的NCO phase_step，用以控制NCO输出频率，暂未实现
+	function note2phase_setp(ndata : std_logic_vector(notes_data_width - 1 downto 0)) return std_logic_vector;
 end package subpros;
 
 package body subpros is
 	--Audio_Controller
-	
 	function rawnote2note(ndata : std_logic_vector(notes_data_width - 1 downto 0))
 	return std_logic_vector is
 		variable x : std_logic_vector(23 downto 0) := (others => '0');
@@ -27,6 +28,8 @@ package body subpros is
 			end loop;
 			return x;
 	end function rawnote2note;
+	
+	
 	
 end subpros;
 
