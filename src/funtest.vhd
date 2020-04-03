@@ -1,23 +1,40 @@
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 use work.constants.all;
-use work.subpros.all;
 
-entity funtest is
+
+entity funtest is 
 port(
-	a : in std_logic_vector(23 downto 0);
-	b : out std_logic_vector(23 downto 0)
+	rst : in std_logic;
+	clk : in std_logic;
+   a : in std_logic_vector(NCO_wave_width - 1 downto 0);
+   b : in std_logic_vector(NCO_wave_width - 1 downto 0);
+   c : out std_logic_vector(NCO_wave_width - 1 downto 0)
 );
 end entity funtest;
 
 architecture bhv of funtest is
-	
-		
+	signal counter : signed(counter_width - 1 downto 0) := (others => '0'); 
+	signal r : signed(counter_width - 1 downto 0) := (others => '0'); 
+	signal k : signed(NCO_wave_width - 1 downto 0);
 begin
-	process(a)
+	process(rst, clk)
 	begin
-		b <= rawnote2note(a);
+		if(rst = '0') then
+			counter <= (others => '0');
+		elsif(clk'event and clk = '1') then
+			if(counter = counterA_threshold) then
+				counter <= (others => '0');
+			else
+				counter <= counter + 1;
+			end if;
+		end if;
 	end process;
+	
+	r <= counter/counterA_divisor;
+	c <= std_logic_vector(r(NCO_wave_width - 1 downto 0));
+
 end architecture bhv;
 
 

@@ -2,6 +2,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 package constants is
 	--Audio_Controller
@@ -35,7 +36,7 @@ package constants is
 	
 	--NCO
 	constant NCO_phase_width : integer := 25;        --输入到 NCO 的相位step参数
-	constant NCO_waveout_width : integer := 24 ;     --NCO 输出波形的位宽
+	constant NCO_wave_width : integer := 12 ;        --NCO 输出波形的位宽
 	--对应的25个NCO phase step
 	constant phase_note_0: std_logic_vector(NCO_phase_width - 1 downto 0) := (others => '0');
 	constant phase_note_1: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000000101010110111010110";
@@ -62,6 +63,19 @@ package constants is
 	constant phase_note_22: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000010010000001011011110";
 	constant phase_note_23: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000010011000110000001011";
 	constant phase_note_24: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000010100001110101011111";
-
+	
+	--ADSR
+	constant note_out_width : integer := 24;                      --板载24位音频模块，ASDR输出结果24位
+	--attack,decay,release阶段计数器阈值
+	constant counter_width : integer := 23;                       --22位才能表示到300000,符号位再加1位
+	constant counterA_threshold : signed := to_signed(100000, counter_width);   --50mhz，一个时钟周期20ns, 2ms供100000个周期
+	constant counterD_threshold : signed := to_signed(300000, counter_width);   --6ms
+	constant counterR_threshold : signed := to_signed(300000, counter_width);   --6ms
+	--ADSR的参数.由于无浮点，实数又不可综合，因此用mod运算来控制幅值调制参数
+	constant counterA_divisor : integer := 49;                                  --100000/2047取整为49
+	constant counterD_start : signed := to_signed(2047, counter_width);        --decay从最大值2047开始降低
+	constant counterD_divisor : integer := 293;                                 --300000/1024取整为293
+	constant sustain_level : signed := to_signed(1023, counter_width);         --sustain阶段保持的幅值调制系数，也是release下降的起点
+	constant counterR_divisor : integer := 293;                                 --300000/1024取整为293
 	
 end package constants;

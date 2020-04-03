@@ -25,23 +25,24 @@ end entity Audio_Controller;
 
 architecture bhv of Audio_Controller is
 	--定义状态
-	type states is (idle, pressed, changed); 
-	signal cur_state, next_state : states; 
+	type state is (idle, pressed, changed); 
+	signal cur_state, next_state : state; 
 	--定义当前音符和上一个音符
 	signal cur_note, last_note : std_logic_vector(notes_data_width - 1 downto 0);
 	
 begin
-	--复位时两个音符都置0，否则在上升沿对输入采样
+	--输入信号转换
+	cur_note <= rawnote2note(notes_data_in);
+	--复位时上一音符置0，否则在上升沿对输入采样
 	process(rst_n, clk_50m)
 	begin
 		if(rst_n = '0') then
-			cur_note <= (others => '0');
 			last_note <= (others => '0');
 		elsif(clk_50m'event and clk_50m = '1') then
-			cur_note <= rawnote2note(notes_data_in);
 			last_note <= cur_note;
 		end if;
 	end process;
+	
 	
 	--以下为状态机控制，采用三段式
 	--状态控制进程
@@ -53,7 +54,6 @@ begin
 			cur_state <= next_state;
 		end if;
 	end process;
-	
 	
 	--次态控制进程，具体细节参考状态图
 	process(cur_state, cur_note, last_note)
@@ -85,21 +85,41 @@ begin
 			else
 				next_state <= changed;
 			end if;
+			
+		when others =>
+			next_state <= idle;
 		end case;
 	end process;
 	
 	--输出控制进程
---	process(cur_state, cur_note)
---	begin
---		case cur_state is
---		when idle =>
---			NCO_phase_step
---			NCO_clk_en
---			note_on
---			note_change
---	
---	end process;
-	
+	process(cur_state, cur_note)
+	begin
+		case cur_state is
+		when idle =>
+			NCO_phase_step <= (others => '0');
+			NCO_clk_en <= '0';
+			note_on <= '0';
+			note_change <= '0';
+			
+		when pressed =>
+			note2phase_step(cur_note, NCO_phase_step);
+			NCO_clk_en <= '1';
+			note_on <= '1';
+			note_change <= '0';
+			
+		when changed =>
+			note2phase_step(cur_note, NCO_phase_step);
+			NCO_clk_en <= '1';
+			note_on <= '1';
+			note_change <= '1';
+		
+		when others =>
+			NCO_phase_step <= (others => '0');
+			NCO_clk_en <= '0';
+			note_on <= '0';
+			note_change <= '0';
+		end case;
+	end process;
 
 end architecture bhv;
 
