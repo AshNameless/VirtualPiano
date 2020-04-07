@@ -1,9 +1,13 @@
+-------------------------------------------------------------------------
+-------------------------------------------------------------------------
 --包含子程序的package
-
+-------------------------------------------------------------------------
+-------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
 use work.constants.all;
-
+-------------------------------------------------------------------------
+-------------------------------------------------------------------------
 package subpros is
 	--Audio_Controller
 	--将识别模块输出的24位信号进行转化，只保留第一个1，其余位全部置为0
@@ -12,8 +16,14 @@ package subpros is
 	--将音符信号转化为对应的NCO phase_step，用以控制NCO输出频率，暂未实现
 	procedure note2phase_step(signal ndata : in std_logic_vector(notes_data_width - 1 downto 0);
 		                       signal x : out std_logic_vector(NCO_phase_width - 1 downto 0));
+	
+	--在wm8731初始化时, 将寄存器计数值转化为对应的寄存器数据
+	procedure codec_regcount2data(signal num : in integer range 0 to audio_codec_reg_num; 
+								         signal x : out std_logic_vector(wm8731_reg_dwidth - 1 downto 0));
+	
 end package subpros;
-
+-------------------------------------------------------------------------
+-------------------------------------------------------------------------
 package body subpros is
 	--Audio_Controller
 	--将输入音符信号转换成只其最低音信号。如识别出按下了40、41号键，则转换为只按下了40号键，方便前期系统搭建，后期可能会有所修改
@@ -37,58 +47,52 @@ package body subpros is
 				                 signal x : out std_logic_vector(NCO_phase_width - 1 downto 0)) is
 		begin
 			case ndata is
-			when note_1 =>
-				x <= phase_note_1;
-			when note_2 =>
-				x <= phase_note_2;
-			when note_3 =>
-				x <= phase_note_3;
-			when note_4 =>
-				x <= phase_note_4;
-			when note_5 =>
-				x <= phase_note_5;
-			when note_6 =>
-				x <= phase_note_6;
-			when note_7 =>
-				x <= phase_note_7;
-			when note_8 =>
-				x <= phase_note_8;
-			when note_9 =>
-				x <= phase_note_9;
-			when note_10 =>
-				x <= phase_note_10;
-			when note_11 =>
-				x <= phase_note_11;
-			when note_12 =>
-				x <= phase_note_12;
-			when note_13 =>
-				x <= phase_note_13;
-			when note_14 =>
-				x <= phase_note_14;
-			when note_15 =>
-				x <= phase_note_15;
-			when note_16 =>
-				x <= phase_note_16;
-			when note_17 =>
-				x <= phase_note_17;
-			when note_18 =>
-				x <= phase_note_18;
-			when note_19 =>
-				x <= phase_note_19;
-			when note_20 =>
-				x <= phase_note_20;
-			when note_21 =>
-				x <= phase_note_21;
-			when note_22 =>
-				x <= phase_note_22;
-			when note_23 =>
-				x <= phase_note_23;
-			when note_24 =>
-				x <= phase_note_24;
-			when others =>
-				x <= phase_note_0;
+			when note_1 => x <= phase_note_1;
+			when note_2 => x <= phase_note_2;
+			when note_3 => x <= phase_note_3;
+			when note_4 => x <= phase_note_4;
+			when note_5 => x <= phase_note_5;
+			when note_6 => x <= phase_note_6;
+			when note_7 => x <= phase_note_7;
+			when note_8 => x <= phase_note_8;
+			when note_9 => x <= phase_note_9;
+			when note_10 => x <= phase_note_10;
+			when note_11 => x <= phase_note_11;
+			when note_12 => x <= phase_note_12;
+			when note_13 => x <= phase_note_13;
+			when note_14 => x <= phase_note_14;
+			when note_15 => x <= phase_note_15;
+			when note_16 => x <= phase_note_16;
+			when note_17 => x <= phase_note_17;
+			when note_18 => x <= phase_note_18;
+			when note_19 => x <= phase_note_19;
+			when note_20 => x <= phase_note_20;
+			when note_21 => x <= phase_note_21;
+			when note_22 => x <= phase_note_22;
+			when note_23 => x <= phase_note_23;
+			when note_24 => x <= phase_note_24;
+			when others => x <= phase_note_0;
 			end case;
 	end procedure note2phase_step;
+	
+	--在wm8731初始化时, 将寄存器计数值转化为对应的寄存器数据
+	procedure codec_regcount2data(signal num : in integer range 0 to audio_codec_reg_num; 
+								         signal x : out std_logic_vector(wm8731_reg_dwidth - 1 downto 0)) is
+	begin
+		case num is
+		when 9 => x <= (others => '0');
+		when 0 => x <= reset_config;
+		when 1 => x <= left_headphone_config;
+		when 2 => x <= right_headphone_config;
+		when 3 => x <= analogue_path_config;
+		when 4 => x <= digital_path_config;
+		when 5 => x <= power_down_config;
+		when 6 => x <= digital_interface_config;
+		when 7 => x <= sampling_config;
+		when 8 => x <= active_config;
+		when others => x <= (others => '0');
+		end case;
+	end procedure codec_regcount2data;
 	
 end subpros;
 

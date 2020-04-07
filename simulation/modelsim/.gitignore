@@ -2,4 +2,5 @@
 *
 #除了.gitignore
 !.gitignore
-
+#除开以.vht结尾的testbench文件
+!*.vht
