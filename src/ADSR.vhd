@@ -3,7 +3,7 @@
 --ADSR
 --
 -- 功能: 模块接受从NCO输出的正弦波和Audio_Controller输出的note_on\note_change等信号
---		   将正弦波经过ADSR调制后产生相应输出
+--	      将正弦波经过ADSR调制后产生相应输出
 --
 -- 原理: 调制过程利用numeric_std包中定义的乘法 * ,将调制参数和输入正弦波都化为signed
 --       再相乘即可(signed是有符号补码). 根据ADSR各个阶段的特点, 设置好各阶段的时长(S
