@@ -15,6 +15,9 @@ port(
 end entity funtest;
 
 architecture bhv of funtest is
+	constant counter_width : integer := 23;   
+	constant counterA_threshold : signed := to_signed(100000, counter_width);
+	constant counterA_divisor : integer := 49;
 	signal counter : signed(counter_width - 1 downto 0) := (others => '0'); 
 	signal r : signed(counter_width - 1 downto 0) := (others => '0'); 
 	signal k : signed(NCO_wave_width - 1 downto 0);

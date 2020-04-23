@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
---用来保存各种常数的package，当后续需要调整位宽之类的时候只需修改本文件中的常数，方便调试
+--用来保存各种常数的package
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 library ieee;
@@ -79,18 +79,8 @@ package constants is
 	-------------------------
 	--ADSR
 	-------------------------
-	constant note_out_width : integer := 24;                      --板载24位音频模块，ASDR输出结果24位
-	--attack,decay,release阶段计数器阈值
-	constant counter_width : integer := 23;                       --22位才能表示到300000,符号位再加1位
-	constant counterA_threshold : signed := to_signed(100000, counter_width);   --50mhz，一个时钟周期20ns, 2ms供100000个周期
-	constant counterD_threshold : signed := to_signed(300000, counter_width);   --6ms
-	constant counterR_threshold : signed := to_signed(300000, counter_width);   --6ms
-	--ADSR的参数.由于无浮点，实数又不可综合，因此用mod运算来控制幅值调制参数
-	constant counterA_divisor : integer := 49;                                  --100000/2047取整为49
-	constant counterD_start : signed := to_signed(2047, counter_width);        --decay从最大值2047开始降低
-	constant counterD_divisor : integer := 293;                                 --300000/1024取整为293
-	constant sustain_level : signed := to_signed(1023, counter_width);         --sustain阶段保持的幅值调制系数，也是release下降的起点
-	constant counterR_divisor : integer := 293;                                 --300000/1024取整为293
+	constant ADSR_note_out_width : integer := 24;                      --板载24位音频模块，ASDR输出结果24位
+
 	
 	
 	
@@ -102,37 +92,136 @@ package constants is
 	-------------wm8731器件地址,最后一位指示读写r/w'------------
 	constant wm8731_device_address : std_logic_vector(7 downto 0) := "00110100";
 	constant wm8731_reg_dwidth : integer := 24;
+	constant wm8731_reg_num : integer := 9;
 	--以下为各配置寄存器的地址及数据，拼接为两个字节。由于只需要输出,部分寄存器无需配置保存默认值即可。
 	
 	-------------------耳机输出---------------------
-	constant left_headphone_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000010" & "011111001";
-	constant right_headphone_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000011" & "011111001";
+	constant wm8731_left_headphone_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000010" & "011111001";
+	constant wm8731_right_headphone_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000011" & "011111001";
 	
 	--------------模拟音频路径控制寄存器------------------
-	constant analogue_path_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000100" & "000010000"; 
+	constant wm8731_analogue_path_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000100" & "000010000"; 
 	
 	--------------数字音频路径控制寄存器------------------
-	constant digital_path_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000101" & "000000000"; 
+	constant wm8731_digital_path_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000101" & "000000000"; 
 	
 	--------------power down控制寄存器-------------------
-	constant power_down_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000110" & "001100111"; 
+	constant wm8731_power_down_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000110" & "001100111"; 
 	
 	--------------数字音频接口格式控制寄存器-------------------
 	--采用left justified进行传输
-	constant digital_interface_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000111" & "000001001"; 
+	constant wm8731_digital_interface_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000111" & "000001001"; 
 	
 	--------------采样控制寄存器-------------------
 	--dac采样率96khz, mclk需要12.288mhz
-	constant sampling_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0001000" & "000011100";
+	constant wm8731_sampling_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0001000" & "000011100";
 	
 	--------------激活控制寄存器-------------------
 	--写入该寄存器则芯片开始工作,因此该寄存器最后写入
-	constant active_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0001001" & "000000001";
+	constant wm8731_active_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0001001" & "000000001";
 	
 	--------------复位控制寄存器-------------------
-	constant reset_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0001111" & "000000000";
+	constant wm8731_reset_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0001111" & "000000000";
 	
-	constant audio_codec_reg_num : integer := 9;
+	
+	
+	
+	--若帧率相关有问题就去复制application note的值过来
+	-------------------------
+	--OV7670
+	-------------------------
+	--利用i2c对OV7670进行配置, 7670器件7bits地址 + 1bit读写指示
+	constant ov7670_device_address : std_logic_vector(7 downto 0) := x"42";  --7670写地址
+	--寄存器宽度及需要配置的寄存器个数
+	constant ov7670_reg_dwidth : integer := 24;
+	constant ov7670_reg_num : integer := 13;
+	--ov7670输出Y数据为8位
+	constant ov7670_output_width : integer := 8;
+	--图像分辨率
+	constant ov7670_image_width : integer := 320;
+	constant ov7670_image_height : integer := 240;
+	
+	--以下为i2c写入数据. 器件地址 & 寄存器地址 & 寄存器值
+	--------------复位及输出选择寄存器-------------------
+	--暂不使用软件复位, 配置为YUV格式输出, VGA
+	constant ov7670_reset_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"12" & x"00";
+	
+	--------------时钟设置寄存器-------------------
+	--使用外部时钟
+	constant ov7670_clkreg_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"11" & x"80";
+	
+	--------------PLL设置寄存器-------------------
+	--关闭PLL寄存器, 0分频
+	constant ov7670_pll_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"6b" & x"00";
+	
+	--------------PCLK及拉伸-------------------
+	--normal PLCK, 不拉伸
+	constant ov7670_pclk_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"3e" & x"00";
+	
+	--------------YUV和输出范围设置-------------------
+	--设置输出范围00-ff.
+	constant ov7670_yuvrange_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"40" & x"c0";
+	
+	--------------TLSB设置-------------------
+	--正常YUV模式, 此寄存器第4位与x"3d"寄存器最低位共通选择YUV输出顺序
+	--此外, 地址为3d的寄存器还可以管理gamma校正. 此处打开gamma,并且tlsb[3]=1 3d[0]=0, 输出顺序为UYVY, 低字节为Y值
+	constant ov7670_tlsb_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"3a" & x"08";
+	constant ov7670_3d_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"3d" & x"80";
+	
+	
+	--输出窗口相关设置, START和STOP应该就是帧/场同步信号的起始和结束计数值,这里按照默认设置,经过计算恰好是相差640和480
+	--------------HREF设置-------------------
+	constant ov7670_href_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"32" & x"80";
+	
+	--------------VREF设置-------------------
+	constant ov7670_vref_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"03" & x"0a";
+	
+	--------------HSTART设置-------------------
+	constant ov7670_hstart_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"17" & x"11";
+	
+	--------------HSTOP设置-------------------
+	constant ov7670_hstop_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"18" & x"61";
+	
+	--------------VSTART设置-------------------
+	constant ov7670_vstart_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"19" & x"03";
+	
+	--------------VSTOP设置-------------------
+	constant ov7670_vstop_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"1a" & x"7b";
+	
+	
+
+	-------------------------
+	--OV7725
+	-------------------------
+	--利用i2c对OV7725进行配置, 7725器件7bits地址 + 1bit读写指示
+	constant ov7725_device_address : std_logic_vector(7 downto 0) := x"42";  --7725写地址
+	--寄存器宽度及需要配置的寄存器个数
+	constant ov7725_reg_dwidth : integer := 24;
+	constant ov7725_reg_num : integer := 11;
+	--ov7670输出Y数据为8位
+	constant ov7725_output_width : integer := 8;
+	--图像分辨率
+	constant ov7725_image_width : integer := 320;
+	constant ov7725_image_height : integer := 240;
+	
+	--------------复位寄存器-------------------
+	--最高位置1fuewi
+	constant ov7725_reset_config : std_logic_vector(ov7725_reg_dwidth - 1 downto 0) := ov7725_device_address & x"12" & x"80";
+	--选择qvga,yuv 只不过和复位信号在一个寄存器里. 
+	constant ov7725_reset_config_qvga : std_logic_vector(ov7725_reg_dwidth - 1 downto 0) := ov7725_device_address & x"12" & x"40";
+	--反转y/uv的顺序, 不论uyvy还是vyuy都是可以的, 只要y是第二个时钟开始输出
+	constant ov7725_yuv_config : std_logic_vector(ov7725_reg_dwidth - 1 downto 0) := ov7725_device_address & x"0c" & x"10";
+	
+	--qvga图片格式相关设置
+	constant ov7725_hstart_config : std_logic_vector(ov7725_reg_dwidth - 1 downto 0) := ov7725_device_address & x"17" & x"3f";
+	constant ov7725_hsize_config : std_logic_vector(ov7725_reg_dwidth - 1 downto 0) := ov7725_device_address & x"18" & x"50";
+	constant ov7725_vstart_config : std_logic_vector(ov7725_reg_dwidth - 1 downto 0) := ov7725_device_address & x"19" & x"03";
+	constant ov7725_vsize_config : std_logic_vector(ov7725_reg_dwidth - 1 downto 0) := ov7725_device_address & x"1a" & x"78";
+	constant ov7725_Houtsize_config : std_logic_vector(ov7725_reg_dwidth - 1 downto 0) := ov7725_device_address & x"29" & x"50";
+	constant ov7725_Voutsize_config : std_logic_vector(ov7725_reg_dwidth - 1 downto 0) := ov7725_device_address & x"2c" & x"78";
+	--内部时钟及pclk
+	constant ov7725_pll_config : std_logic_vector(ov7725_reg_dwidth - 1 downto 0) := ov7725_device_address & x"0d" & x"41";
+	constant ov7725_clkrc_config : std_logic_vector(ov7725_reg_dwidth - 1 downto 0) := ov7725_device_address & x"11" & x"01";
 	
 end package constants;
 

@@ -5,7 +5,7 @@
 -- 功能: 完成音频数据到wm8731的输出,为芯片产生工作时钟MCLK,比特流时钟BCLK
 --       DAC输入DACDAT以及左右声道转换信号DACLRCK.
 --
--- 原理: 输入50mhz分频得到BCLK,MCLK. 对BCLK再计数分频得到DACLRCK,同时依照
+-- 描述: 输入50mhz分频得到BCLK,MCLK. 对BCLK再计数分频得到DACLRCK,同时依照
 --       wm8731 left justified传输方式, 从DACLRCK的分频计数器直接得到传输
 --       数据的位数, 将其赋值给DACDAT即可
 ---------------------------------------------------------------------
@@ -16,11 +16,14 @@ use work.constants.all;
 -------------------------------------------------------
 -------------------------------------------------------
 entity Left_justified is 
+generic(
+	input_note_data_width : integer := ADSR_note_out_width
+);
 port(
 	--输入
 	rst_n : in std_logic;
 	clk_50m : in std_logic;
-	note_data : in std_logic_vector(note_out_width - 1 downto 0);
+	note_data : in std_logic_vector(input_note_data_width - 1 downto 0);
 	
 	--与wm8731的接口
 	AUD_MCLK : out std_logic;                    --芯片工作时钟
@@ -36,7 +39,8 @@ architecture bhv of Left_justified is
 	signal mclk : std_logic := '0';
 	signal bclk : std_logic := '0';
 	signal lrclk : std_logic := '0';
-	signal data : std_logic_vector(note_out_width + 2 downto 0) := (others => '0');
+	--因为left_justified输出方式中, 24位数据传输完毕后需要跟3个0, 所以此处data为27wei, data=note_data & 000.
+	signal data : std_logic_vector(input_note_data_width + 2 downto 0) := (others => '0');
 	
 	--输入50mhz,MCLK期望为12.288mhz,计数2翻转一次(半个周期),实际得到的MCLK为12.5mhz
 	constant mclk_threshold : integer := 1;

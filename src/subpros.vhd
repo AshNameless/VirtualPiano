@@ -18,9 +18,12 @@ package subpros is
 		                       signal x : out std_logic_vector(NCO_phase_width - 1 downto 0));
 	
 	--在wm8731初始化时, 将寄存器计数值转化为对应的寄存器数据
-	procedure codec_regcount2data(signal num : in integer range 0 to audio_codec_reg_num; 
+	procedure codec_regcount2data(signal num : in integer range 0 to wm8731_reg_num; 
 								         signal x : out std_logic_vector(wm8731_reg_dwidth - 1 downto 0));
 	
+	--在ov7670初始化时, 将寄存器计数值转化为对应的寄存器数据
+	procedure camera_regcount2data(signal num : in integer range 0 to ov7725_reg_num; 
+								         signal x : out std_logic_vector(ov7725_reg_dwidth - 1 downto 0));
 end package subpros;
 -------------------------------------------------------------------------
 -------------------------------------------------------------------------
@@ -76,23 +79,42 @@ package body subpros is
 	end procedure note2phase_step;
 	
 	--在wm8731初始化时, 将寄存器计数值转化为对应的寄存器数据
-	procedure codec_regcount2data(signal num : in integer range 0 to audio_codec_reg_num; 
+	procedure codec_regcount2data(signal num : in integer range 0 to wm8731_reg_num; 
 								         signal x : out std_logic_vector(wm8731_reg_dwidth - 1 downto 0)) is
 	begin
 		case num is
-		when 9 => x <= (others => '0');
-		when 0 => x <= reset_config;
-		when 1 => x <= left_headphone_config;
-		when 2 => x <= right_headphone_config;
-		when 3 => x <= analogue_path_config;
-		when 4 => x <= digital_path_config;
-		when 5 => x <= power_down_config;
-		when 6 => x <= digital_interface_config;
-		when 7 => x <= sampling_config;
-		when 8 => x <= active_config;
+		when 0 => x <= wm8731_reset_config;
+		when 1 => x <= wm8731_left_headphone_config;
+		when 2 => x <= wm8731_right_headphone_config;
+		when 3 => x <= wm8731_analogue_path_config;
+		when 4 => x <= wm8731_digital_path_config;
+		when 5 => x <= wm8731_power_down_config;
+		when 6 => x <= wm8731_digital_interface_config;
+		when 7 => x <= wm8731_sampling_config;
+		when 8 => x <= wm8731_active_config;
 		when others => x <= (others => '0');
 		end case;
 	end procedure codec_regcount2data;
+
+	--在ov7725初始化时, 将寄存器计数值转化为对应的寄存器数据
+	procedure camera_regcount2data(signal num : in integer range 0 to ov7725_reg_num; 
+								         signal x : out std_logic_vector(ov7725_reg_dwidth - 1 downto 0)) is
+	begin
+		case num is
+		when 0 => x <= ov7725_reset_config;
+		when 1 => x <= ov7725_reset_config_qvga;
+		when 2 =>  x <= ov7725_yuv_config;
+		when 3 =>  x <= ov7725_hstart_config;
+		when 4 =>  x <= ov7725_hsize_config;
+		when 5 =>  x <= ov7725_vstart_config;
+		when 6 =>  x <= ov7725_vsize_config;
+		when 7 =>  x <= ov7725_Houtsize_config;
+		when 8 =>  x <= ov7725_Voutsize_config;
+		when 9 =>  x <= ov7725_pll_config;
+		when 10 =>  x <= ov7725_clkrc_config;
+		when others => x<= (others => '0');
+		end case;
+	end procedure camera_regcount2data;
 	
 end subpros;
 
