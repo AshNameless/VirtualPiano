@@ -22,8 +22,8 @@ package subpros is
 								         signal x : out std_logic_vector(wm8731_reg_dwidth - 1 downto 0));
 	
 	--在ov7670初始化时, 将寄存器计数值转化为对应的寄存器数据
-	procedure camera_regcount2data(signal num : in integer range 0 to ov7725_reg_num; 
-								         signal x : out std_logic_vector(ov7725_reg_dwidth - 1 downto 0));
+	procedure camera_regcount2data(signal num : in integer range 0 to ov7670_reg_num; 
+								         signal x : out std_logic_vector(ov7670_reg_dwidth - 1 downto 0));
 end package subpros;
 -------------------------------------------------------------------------
 -------------------------------------------------------------------------
@@ -101,17 +101,14 @@ package body subpros is
 								         signal x : out std_logic_vector(ov7725_reg_dwidth - 1 downto 0)) is
 	begin
 		case num is
-		when 0 => x <= ov7725_reset_config;
-		when 1 => x <= ov7725_reset_config_qvga;
-		when 2 =>  x <= ov7725_yuv_config;
-		when 3 =>  x <= ov7725_hstart_config;
-		when 4 =>  x <= ov7725_hsize_config;
-		when 5 =>  x <= ov7725_vstart_config;
-		when 6 =>  x <= ov7725_vsize_config;
-		when 7 =>  x <= ov7725_Houtsize_config;
-		when 8 =>  x <= ov7725_Voutsize_config;
-		when 9 =>  x <= ov7725_pll_config;
-		when 10 =>  x <= ov7725_clkrc_config;
+		when 0 => x <= ov7670_reset_config;
+		when 1 => x <= ov7670_reset_config_qvga;
+		when 2 =>  x <= ov7670_clkreg_config;
+		when 3 =>  x <= ov7670_pll_config;
+		when 4 =>  x <= ov7670_pclk_config;
+		when 5 =>  x <= ov7670_yuvrange_config;
+		when 6 =>  x <= ov7670_tlsb_config;
+		when 7 =>  x <= ov7670_3d_config;
 		when others => x<= (others => '0');
 		end case;
 	end procedure camera_regcount2data;

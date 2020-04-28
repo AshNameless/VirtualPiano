@@ -16,9 +16,9 @@ use work.constants.all;
 -------------------------------------------------------
 entity rdfrom_fifo is
 generic(
-	pixel_data_width : integer := ov7725_output_width;
-	image_width : integer := ov7725_image_width;
-	image_height : integer := ov7725_image_height
+	pixel_data_width : integer := ov7670_output_width;
+	image_width : integer := ov7670_image_width;
+	image_height : integer := ov7670_image_height
 );
 port(
 	--输入
@@ -27,6 +27,9 @@ port(
 	
 	--输出data_valid信号, 输出像素有多少该信号就置位多少个时钟周期
 	data_valid : out std_logic;
+	
+	--输出像素数据, 与fifo数据相同
+	output_data : out std_logic_vector(pixel_data_width - 1 downto 0);
 	
 	--与fifo交互
 	pixel_data : in std_logic_vector(pixel_data_width - 1 downto 0);   --fifo输出数据
@@ -51,8 +54,10 @@ architecture bhv of rdfrom_fifo is
 	signal cur_state : state := idle;
 	signal next_state : state := idle;
 begin
-	--读时钟
+	--输出赋值
 	rd_clk <= clk_50m;
+	output_data <= pixel_data;
+	
 	--像素读取计数器
 	process(rst_n, clk_50m)
 	begin

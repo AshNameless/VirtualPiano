@@ -134,7 +134,7 @@ package constants is
 	constant ov7670_device_address : std_logic_vector(7 downto 0) := x"42";  --7670写地址
 	--寄存器宽度及需要配置的寄存器个数
 	constant ov7670_reg_dwidth : integer := 24;
-	constant ov7670_reg_num : integer := 13;
+	constant ov7670_reg_num : integer := 8;
 	--ov7670输出Y数据为8位
 	constant ov7670_output_width : integer := 8;
 	--图像分辨率
@@ -144,8 +144,8 @@ package constants is
 	--以下为i2c写入数据. 器件地址 & 寄存器地址 & 寄存器值
 	--------------复位及输出选择寄存器-------------------
 	--暂不使用软件复位, 配置为YUV格式输出, VGA
-	constant ov7670_reset_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"12" & x"00";
-	
+	constant ov7670_reset_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"12" & x"80";
+	constant ov7670_reset_config_qvga : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"12" & x"10";
 	--------------时钟设置寄存器-------------------
 	--使用外部时钟
 	constant ov7670_clkreg_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"11" & x"80";
@@ -168,7 +168,7 @@ package constants is
 	constant ov7670_tlsb_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"3a" & x"08";
 	constant ov7670_3d_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"3d" & x"80";
 	
-	
+	-------暂时不使用下面的, 看看效果
 	--输出窗口相关设置, START和STOP应该就是帧/场同步信号的起始和结束计数值,这里按照默认设置,经过计算恰好是相差640和480
 	--------------HREF设置-------------------
 	constant ov7670_href_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"32" & x"80";

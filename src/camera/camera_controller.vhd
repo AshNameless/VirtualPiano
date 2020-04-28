@@ -16,8 +16,8 @@ use work.subpros.all;
 -------------------------------------------------------
 entity camera_controller is
 generic(
-	pixel_data_width : integer := ov7725_output_width;
-	register_num : integer := ov7725_reg_num
+	pixel_data_width : integer := ov7670_output_width;
+	register_num : integer := ov7670_reg_num
 );
 port(
 	--输入
