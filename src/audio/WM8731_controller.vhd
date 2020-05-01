@@ -11,7 +11,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use work.constants.all;
-use work.subpros.all;
 -------------------------------------------------------
 -------------------------------------------------------
 entity WM8731_controller is

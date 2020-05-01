@@ -17,9 +17,9 @@
 -- suit user's needs .Comments are provided in each section to help the user  
 -- fill out necessary details.                                                
 -- ***************************************************************************
--- Generated on "04/30/2020 10:00:05"
+-- Generated on "04/24/2020 14:01:07"
                                                             
--- Vhdl Test Bench template for design  :  VirtualPiano
+-- Vhdl Test Bench template for design  :  fifo2ram_test
 -- 
 -- Simulation tool : ModelSim (VHDL)
 -- 
@@ -27,83 +27,65 @@
 LIBRARY ieee;                                               
 USE ieee.std_logic_1164.all;                                
 
-ENTITY VirtualPiano_vhd_tst IS
-END VirtualPiano_vhd_tst;
-ARCHITECTURE VirtualPiano_arch OF VirtualPiano_vhd_tst IS
+ENTITY fifo2ram_test_vhd_tst IS
+END fifo2ram_test_vhd_tst;
+ARCHITECTURE fifo2ram_test_arch OF fifo2ram_test_vhd_tst IS
 -- constants                                                 
 -- signals                                                   
-SIGNAL clk_50m : STD_LOGIC;
-SIGNAL href : STD_LOGIC;
-SIGNAL i2c_scl : STD_LOGIC;
-SIGNAL i2c_sda : STD_LOGIC;
-SIGNAL pclk : STD_LOGIC;
+SIGNAL clk_50m : STD_LOGIC := '0';
+SIGNAL frame_ready : STD_LOGIC;
 SIGNAL pixel_data : STD_LOGIC_VECTOR(7 DOWNTO 0);
+SIGNAL ram_address : STD_LOGIC_VECTOR(15 DOWNTO 0);
+SIGNAL ram_data : STD_LOGIC_VECTOR(15 DOWNTO 0);
+SIGNAL ram_wrclk : STD_LOGIC;
+SIGNAL ram_wren : STD_LOGIC;
+SIGNAL rdempty : STD_LOGIC;
 SIGNAL rst_n : STD_LOGIC;
-SIGNAL VGA_B : STD_LOGIC_VECTOR(7 DOWNTO 0);
-SIGNAL VGA_BLANK_N : STD_LOGIC;
-SIGNAL VGA_CLK : STD_LOGIC;
-SIGNAL VGA_G : STD_LOGIC_VECTOR(7 DOWNTO 0);
-SIGNAL VGA_HS : STD_LOGIC;
-SIGNAL VGA_R : STD_LOGIC_VECTOR(7 DOWNTO 0);
-SIGNAL VGA_SYNC_N : STD_LOGIC;
-SIGNAL VGA_VS : STD_LOGIC;
-SIGNAL vsyn : STD_LOGIC;
-SIGNAL xclk_25m : STD_LOGIC;
-COMPONENT VirtualPiano
+COMPONENT fifo2ram_test
 	PORT (
 	clk_50m : IN STD_LOGIC;
-	href : IN STD_LOGIC;
-	i2c_scl : OUT STD_LOGIC;
-	i2c_sda : OUT STD_LOGIC;
-	pclk : IN STD_LOGIC;
+	frame_ready : IN STD_LOGIC;
 	pixel_data : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
-	rst_n : IN STD_LOGIC;
-	VGA_B : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
-	VGA_BLANK_N : OUT STD_LOGIC;
-	VGA_CLK : OUT STD_LOGIC;
-	VGA_G : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
-	VGA_HS : OUT STD_LOGIC;
-	VGA_R : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
-	VGA_SYNC_N : OUT STD_LOGIC;
-	VGA_VS : OUT STD_LOGIC;
-	vsyn : IN STD_LOGIC;
-	xclk_25m : OUT STD_LOGIC
+	ram_address : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);
+	ram_data : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);
+	ram_wrclk : OUT STD_LOGIC;
+	ram_wren : OUT STD_LOGIC;
+	rdempty : IN STD_LOGIC;
+	rst_n : IN STD_LOGIC
 	);
 END COMPONENT;
 BEGIN
-	i1 : VirtualPiano
+	i1 : fifo2ram_test
 	PORT MAP (
 -- list connections between master ports and signals
 	clk_50m => clk_50m,
-	href => href,
-	i2c_scl => i2c_scl,
-	i2c_sda => i2c_sda,
-	pclk => pclk,
+	frame_ready => frame_ready,
 	pixel_data => pixel_data,
-	rst_n => rst_n,
-	VGA_B => VGA_B,
-	VGA_BLANK_N => VGA_BLANK_N,
-	VGA_CLK => VGA_CLK,
-	VGA_G => VGA_G,
-	VGA_HS => VGA_HS,
-	VGA_R => VGA_R,
-	VGA_SYNC_N => VGA_SYNC_N,
-	VGA_VS => VGA_VS,
-	vsyn => vsyn,
-	xclk_25m => xclk_25m
+	ram_address => ram_address,
+	ram_data => ram_data,
+	ram_wrclk => ram_wrclk,
+	ram_wren => ram_wren,
+	rdempty => rdempty,
+	rst_n => rst_n
 	);
 init : PROCESS                                               
 -- variable declarations                                     
 BEGIN                                                        
-        -- code that executes only once                      
-WAIT;                                                       
+rst_n <= '0';
+frame_ready <= '0';              
+pixel_data <= (others => '1');
+rdempty <= '0';
+wait for 25 ns;
+rst_n <= '1';
+frame_ready <= '1';                    
+WAIT;                                                    
 END PROCESS init;                                           
 always : PROCESS                                              
 -- optional sensitivity list                                  
 -- (        )                                                 
 -- variable declarations                                      
 BEGIN                                                         
-        -- code executes for every event on sensitivity list  
-WAIT;                                                        
+wait for 10 ns;
+clk_50m <= not clk_50m;                                         
 END PROCESS always;                                          
-END VirtualPiano_arch;
+END fifo2ram_test_arch;

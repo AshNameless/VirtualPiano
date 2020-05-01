@@ -18,8 +18,8 @@ use work.constants.all;
 -------------------------------------------------------
 entity camera2fifo is
 generic(
-	pixel_data_width : integer := ov7725_output_width;
- 	image_height : integer := ov7725_image_height
+	pixel_data_width : integer := ov7670_output_width;
+ 	image_height : integer := ov7670_image_height
 );
 port(
 	rst_n : in std_logic;

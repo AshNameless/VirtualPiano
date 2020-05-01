@@ -17,9 +17,9 @@
 -- suit user's needs .Comments are provided in each section to help the user  
 -- fill out necessary details.                                                
 -- ***************************************************************************
--- Generated on "04/30/2020 10:00:05"
+-- Generated on "04/11/2020 19:55:26"
                                                             
--- Vhdl Test Bench template for design  :  VirtualPiano
+-- Vhdl Test Bench template for design  :  camera2fifo
 -- 
 -- Simulation tool : ModelSim (VHDL)
 -- 
@@ -27,75 +27,70 @@
 LIBRARY ieee;                                               
 USE ieee.std_logic_1164.all;                                
 
-ENTITY VirtualPiano_vhd_tst IS
-END VirtualPiano_vhd_tst;
-ARCHITECTURE VirtualPiano_arch OF VirtualPiano_vhd_tst IS
+ENTITY camera2fifo_vhd_tst IS
+END camera2fifo_vhd_tst;
+ARCHITECTURE camera2fifo_arch OF camera2fifo_vhd_tst IS
 -- constants                                                 
 -- signals                                                   
-SIGNAL clk_50m : STD_LOGIC;
+SIGNAL fifo_data : STD_LOGIC_VECTOR(7 DOWNTO 0);
+SIGNAL fifo_wclk : STD_LOGIC;
+SIGNAL fifo_wreq : STD_LOGIC;
+SIGNAL fifo_wrfull : STD_LOGIC;
+SIGNAL frame_ready : STD_LOGIC;
 SIGNAL href : STD_LOGIC;
-SIGNAL i2c_scl : STD_LOGIC;
-SIGNAL i2c_sda : STD_LOGIC;
-SIGNAL pclk : STD_LOGIC;
-SIGNAL pixel_data : STD_LOGIC_VECTOR(7 DOWNTO 0);
+SIGNAL pclk : STD_LOGIC := '0';
+SIGNAL pixel_data_in : STD_LOGIC_VECTOR(7 DOWNTO 0);
 SIGNAL rst_n : STD_LOGIC;
-SIGNAL VGA_B : STD_LOGIC_VECTOR(7 DOWNTO 0);
-SIGNAL VGA_BLANK_N : STD_LOGIC;
-SIGNAL VGA_CLK : STD_LOGIC;
-SIGNAL VGA_G : STD_LOGIC_VECTOR(7 DOWNTO 0);
-SIGNAL VGA_HS : STD_LOGIC;
-SIGNAL VGA_R : STD_LOGIC_VECTOR(7 DOWNTO 0);
-SIGNAL VGA_SYNC_N : STD_LOGIC;
-SIGNAL VGA_VS : STD_LOGIC;
 SIGNAL vsyn : STD_LOGIC;
-SIGNAL xclk_25m : STD_LOGIC;
-COMPONENT VirtualPiano
+COMPONENT camera2fifo
 	PORT (
-	clk_50m : IN STD_LOGIC;
+	fifo_data : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+	fifo_wclk : OUT STD_LOGIC;
+	fifo_wreq : OUT STD_LOGIC;
+	fifo_wrfull : IN STD_LOGIC;
+	frame_ready : OUT STD_LOGIC;
 	href : IN STD_LOGIC;
-	i2c_scl : OUT STD_LOGIC;
-	i2c_sda : OUT STD_LOGIC;
 	pclk : IN STD_LOGIC;
-	pixel_data : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
+	pixel_data_in : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
 	rst_n : IN STD_LOGIC;
-	VGA_B : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
-	VGA_BLANK_N : OUT STD_LOGIC;
-	VGA_CLK : OUT STD_LOGIC;
-	VGA_G : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
-	VGA_HS : OUT STD_LOGIC;
-	VGA_R : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
-	VGA_SYNC_N : OUT STD_LOGIC;
-	VGA_VS : OUT STD_LOGIC;
-	vsyn : IN STD_LOGIC;
-	xclk_25m : OUT STD_LOGIC
+	vsyn : IN STD_LOGIC
 	);
 END COMPONENT;
 BEGIN
-	i1 : VirtualPiano
+	i1 : camera2fifo
 	PORT MAP (
 -- list connections between master ports and signals
-	clk_50m => clk_50m,
+	fifo_data => fifo_data,
+	fifo_wclk => fifo_wclk,
+	fifo_wreq => fifo_wreq,
+	fifo_wrfull => fifo_wrfull,
+	frame_ready => frame_ready,
 	href => href,
-	i2c_scl => i2c_scl,
-	i2c_sda => i2c_sda,
 	pclk => pclk,
-	pixel_data => pixel_data,
+	pixel_data_in => pixel_data_in,
 	rst_n => rst_n,
-	VGA_B => VGA_B,
-	VGA_BLANK_N => VGA_BLANK_N,
-	VGA_CLK => VGA_CLK,
-	VGA_G => VGA_G,
-	VGA_HS => VGA_HS,
-	VGA_R => VGA_R,
-	VGA_SYNC_N => VGA_SYNC_N,
-	VGA_VS => VGA_VS,
-	vsyn => vsyn,
-	xclk_25m => xclk_25m
+	vsyn => vsyn
 	);
 init : PROCESS                                               
 -- variable declarations                                     
 BEGIN                                                        
-        -- code that executes only once                      
+rst_n <= '0';
+fifo_wrfull <= '0';
+pixel_data_in <= x"00";
+vsyn <= '0';
+href <= '0';
+wait for 40 ns;
+rst_n <= '1';
+vsyn <= '1';
+wait for 3*784*2*40 ns;
+vsyn <= '0';
+wait for 17*784*2*40 ns;
+href <= '1';
+wait for 640*2*40 ns;
+href <= '0';
+
+
+
 WAIT;                                                       
 END PROCESS init;                                           
 always : PROCESS                                              
@@ -103,7 +98,9 @@ always : PROCESS
 -- (        )                                                 
 -- variable declarations                                      
 BEGIN                                                         
-        -- code executes for every event on sensitivity list  
-WAIT;                                                        
+wait for 20 ns;
+pclk <= '1';
+wait for 20 ns;
+pclk <= '0';                                                  
 END PROCESS always;                                          
-END VirtualPiano_arch;
+END camera2fifo_arch;

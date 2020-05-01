@@ -44,14 +44,33 @@ architecture bhv of I2C is
 	signal clk_count : integer range 0 to clk_200khz_threshold := 0;
 	
 	--定义状态
-	type state is (idle, start, transmit_0, transmit_1, ack_0, ack_1, err, stop_0, stop_1, stop_2);
+	type state is (idle, start, transmit_0, transmit_1, ack_0, ack_1, ack_2, err, stop_0, stop_1, stop_2);
 	signal cur_state : state := idle;
 	signal next_state : state := idle;
 	
 	--传输24位,设置一个计数器以确定传输的数据位并确定是否完成传输或是否需要ack
-	signal bit_count : integer range 0 to 23 := 23;
+	signal bit_count : integer range 0 to 24 := 24;
+	signal bit_count_impulse : std_logic := '0';     --只在transmit_0到transmit_1时发出一个脉冲, 用来对已传输位数计数
+	
+	--三态门控制信号
+	signal sda_out : std_logic := '0';
+	signal sda_in : std_logic := '0';
+	signal sda_en : std_logic := '0';
 	
 begin
+	--三态门输出控制
+	sda_in <= i2c_sda;
+	--输出驱动进程
+	process(sda_out, sda_en)
+	begin
+		if(sda_en = '1') then
+			i2c_sda <= sda_out;
+		else
+			i2c_sda <= 'Z';
+		end if;
+	end process;
+	
+
 	--产生200khz的时钟
 	process(rst_n, clk_50m)
 	begin
@@ -80,7 +99,7 @@ begin
 	end process; 
 	
 	--次态控制进程
-	process(cur_state, send, i2c_sda)
+	process(cur_state, send, sda_in, bit_count)
 	begin
 		next_state <= cur_state;
 		
@@ -124,7 +143,14 @@ begin
 		
 		when ack_1 =>
 		--sda=0时说明从机发送了ack信号, 传输正常
-			if(send = '0' or i2c_sda = '1') then
+			if(send = '0' or sda_in = '1') then
+				next_state <= err;
+			else
+				next_state <= ack_2;
+			end if;
+		
+		when ack_2 =>
+			if(send = '0') then
 				next_state <= err;
 			elsif(bit_count = 0) then
 				next_state <= stop_0;
@@ -133,101 +159,130 @@ begin
 			end if;
 		
 		when stop_0 =>
-			if(send = '0') then
-				next_state <= err;
-			else
-				next_state <= stop_1;
-			end if;
+			next_state <= stop_1;
 			
 		when stop_1 =>
-			if(send = '0') then
-				next_state <= err;
-			else
-				next_state <= stop_2;
-			end if;
+			next_state <= stop_2;
 			
 		when stop_2 =>
 			next_state <= idle;
 		
 		when err =>
-			next_state <= idle;
+			next_state <= stop_0;
 			
 		when others => null;
 		end case;
 	end process;
 	
 	--输出和内部信号控制
-	process(cur_state, data)
+	process(cur_state, data, bit_count)
 	begin		
 		case cur_state is 
 		when idle =>
 			i2c_scl <= '1';
-			i2c_sda <= 'Z';
+			sda_out <= '0';
+			sda_en <= '0';
 			done <= '0';
 			error <= '0';
-			bit_count <= 23;
+			bit_count_impulse <= '0';
 		
 		when start =>
 			i2c_scl <= '1';
-			i2c_sda <= '0';
+			sda_out <= '0';
+			sda_en <= '1';
 			done <= '0';
 			error <= '0';
-			bit_count <= 23;
+			bit_count_impulse <= '0';
 		
 		when transmit_0 => 
 			i2c_scl <= '0';
-			i2c_sda <= data(bit_count);
+			sda_out <= data(bit_count - 1);
+			sda_en <= '1';
 			done <= '0';
 			error <= '0';
+			bit_count_impulse <= '0';
 		
 		when transmit_1 =>
 			i2c_scl <= '1';
-			i2c_sda <= data(bit_count);
+			--i2c_sda <= data(bit_count);
+			sda_en <= '1';
 			done <= '0';
 			error <= '0';
-			if(bit_count >= 1) then
+			bit_count_impulse <= '1';
+			
+		when ack_0 =>
+			i2c_scl <= '0';
+			sda_out <= '0';
+			sda_en <= '0';
+			done <= '0';
+			error <= '0';
+			bit_count_impulse <= '0';
+
+		when ack_1 =>
+			i2c_scl <= '1';
+			sda_out <= '0';
+			sda_en <= '0';
+			done <= '0';
+			error <= '0';
+			bit_count_impulse <= '0';
+		
+		when ack_2 =>
+			i2c_scl <= '0';
+			sda_out <= '0';
+			sda_en <= '0';
+			done <= '0';
+			error <= '0';
+			bit_count_impulse <= '0';
+
+		when stop_0 =>
+			i2c_scl <= '0';
+			sda_out <= '0';
+			sda_en <= '0';
+			done <= '0';
+			error <= '0';
+			bit_count_impulse <= '0';
+			
+		when stop_1 =>
+			i2c_scl <= '1';
+			sda_out <= '0';
+			sda_en <= '1';
+			done <= '0';
+			error <= '0';
+			bit_count_impulse <= '0';
+			
+		when stop_2 =>
+			sda_out <= '1';
+			sda_en <= '1';
+			i2c_scl <= '1';
+			done <= '1';
+			error <= '0';
+			bit_count_impulse <= '0';
+			
+		when err =>
+			i2c_scl <= '1';
+			sda_out <= '0';
+			sda_en <= '0';
+			done <= '0';
+			error <= '1';
+			bit_count_impulse <= '0';
+			
+		when others => null;
+		end case;
+	end process;
+	
+	--bit_count计数进程
+	process(cur_state, bit_count_impulse)
+	begin
+		if(cur_state = idle) then
+			bit_count <= 24;
+		elsif(bit_count_impulse'event and bit_count_impulse = '1') then
+			if(bit_count > 0 )then
 				bit_count <= bit_count - 1;
 			else
 				bit_count <= 0;
 			end if;
-			
-		when ack_0 =>
-			i2c_scl <= '0';
-			i2c_sda <= 'Z';
-			done <= '0';
-			error <= '0';
-
-		when ack_1 =>
-			i2c_scl <= '1';
-			i2c_sda <= 'Z';
-			done <= '0';
-			error <= '0';
-
-		when stop_0 =>
-			i2c_scl <= '0';
-			i2c_sda <= '0';
-			done <= '0';
-			error <= '0';
-			
-		when stop_1 =>
-			i2c_scl <= '1';
-			i2c_sda <= '0';
-			done <= '0';
-			error <= '0';
-			
-		when stop_2 =>
-			i2c_sda <= 'Z';
-			i2c_scl <= '1';
-			done <= '1';
-			error <= '0';
-			
-		when err =>
-			i2c_scl <= '1';
-			i2c_sda <= 'Z';
-			done <= '0';
-			error <= '1';
-
-		when others => null;
-		end case;
+		end if;
 	end process;
+	
+	
 end architecture bhv;

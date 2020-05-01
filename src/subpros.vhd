@@ -96,9 +96,9 @@ package body subpros is
 		end case;
 	end procedure codec_regcount2data;
 
-	--在ov7725初始化时, 将寄存器计数值转化为对应的寄存器数据
-	procedure camera_regcount2data(signal num : in integer range 0 to ov7725_reg_num; 
-								         signal x : out std_logic_vector(ov7725_reg_dwidth - 1 downto 0)) is
+	--在摄像头初始化时, 将寄存器计数值转化为对应的寄存器数据
+	procedure camera_regcount2data(signal num : in integer range 0 to ov7670_reg_num; 
+								         signal x : out std_logic_vector(ov7670_reg_dwidth - 1 downto 0)) is
 	begin
 		case num is
 		when 0 => x <= ov7670_reset_config;

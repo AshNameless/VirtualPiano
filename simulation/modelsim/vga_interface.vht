@@ -17,9 +17,9 @@
 -- suit user's needs .Comments are provided in each section to help the user  
 -- fill out necessary details.                                                
 -- ***************************************************************************
--- Generated on "04/30/2020 10:00:05"
+-- Generated on "04/28/2020 18:52:37"
                                                             
--- Vhdl Test Bench template for design  :  VirtualPiano
+-- Vhdl Test Bench template for design  :  vga_interface
 -- 
 -- Simulation tool : ModelSim (VHDL)
 -- 
@@ -27,70 +27,61 @@
 LIBRARY ieee;                                               
 USE ieee.std_logic_1164.all;                                
 
-ENTITY VirtualPiano_vhd_tst IS
-END VirtualPiano_vhd_tst;
-ARCHITECTURE VirtualPiano_arch OF VirtualPiano_vhd_tst IS
+ENTITY vga_interface_vhd_tst IS
+END vga_interface_vhd_tst;
+ARCHITECTURE vga_interface_arch OF vga_interface_vhd_tst IS
 -- constants                                                 
 -- signals                                                   
+SIGNAL b_data : STD_LOGIC_VECTOR(7 DOWNTO 0);
+SIGNAL blank_n : STD_LOGIC;
 SIGNAL clk_50m : STD_LOGIC;
-SIGNAL href : STD_LOGIC;
-SIGNAL i2c_scl : STD_LOGIC;
-SIGNAL i2c_sda : STD_LOGIC;
-SIGNAL pclk : STD_LOGIC;
-SIGNAL pixel_data : STD_LOGIC_VECTOR(7 DOWNTO 0);
+SIGNAL g_data : STD_LOGIC_VECTOR(7 DOWNTO 0);
+SIGNAL r_data : STD_LOGIC_VECTOR(7 DOWNTO 0);
+SIGNAL ram_pixel_data : STD_LOGIC_VECTOR(7 DOWNTO 0);
+SIGNAL ram_rdaddress : STD_LOGIC_VECTOR(16 DOWNTO 0);
+SIGNAL ram_rdclk : STD_LOGIC;
+SIGNAL ram_rden : STD_LOGIC;
 SIGNAL rst_n : STD_LOGIC;
-SIGNAL VGA_B : STD_LOGIC_VECTOR(7 DOWNTO 0);
-SIGNAL VGA_BLANK_N : STD_LOGIC;
-SIGNAL VGA_CLK : STD_LOGIC;
-SIGNAL VGA_G : STD_LOGIC_VECTOR(7 DOWNTO 0);
-SIGNAL VGA_HS : STD_LOGIC;
-SIGNAL VGA_R : STD_LOGIC_VECTOR(7 DOWNTO 0);
-SIGNAL VGA_SYNC_N : STD_LOGIC;
-SIGNAL VGA_VS : STD_LOGIC;
-SIGNAL vsyn : STD_LOGIC;
-SIGNAL xclk_25m : STD_LOGIC;
-COMPONENT VirtualPiano
+SIGNAL sync_n : STD_LOGIC;
+SIGNAL vga_clk : STD_LOGIC;
+SIGNAL vga_h : STD_LOGIC;
+SIGNAL vga_v : STD_LOGIC;
+COMPONENT vga_interface
 	PORT (
+	b_data : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+	blank_n : OUT STD_LOGIC;
 	clk_50m : IN STD_LOGIC;
-	href : IN STD_LOGIC;
-	i2c_scl : OUT STD_LOGIC;
-	i2c_sda : OUT STD_LOGIC;
-	pclk : IN STD_LOGIC;
-	pixel_data : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
+	g_data : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+	r_data : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+	ram_pixel_data : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
+	ram_rdaddress : OUT STD_LOGIC_VECTOR(16 DOWNTO 0);
+	ram_rdclk : OUT STD_LOGIC;
+	ram_rden : OUT STD_LOGIC;
 	rst_n : IN STD_LOGIC;
-	VGA_B : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
-	VGA_BLANK_N : OUT STD_LOGIC;
-	VGA_CLK : OUT STD_LOGIC;
-	VGA_G : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
-	VGA_HS : OUT STD_LOGIC;
-	VGA_R : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
-	VGA_SYNC_N : OUT STD_LOGIC;
-	VGA_VS : OUT STD_LOGIC;
-	vsyn : IN STD_LOGIC;
-	xclk_25m : OUT STD_LOGIC
+	sync_n : OUT STD_LOGIC;
+	vga_clk : OUT STD_LOGIC;
+	vga_h : OUT STD_LOGIC;
+	vga_v : OUT STD_LOGIC
 	);
 END COMPONENT;
 BEGIN
-	i1 : VirtualPiano
+	i1 : vga_interface
 	PORT MAP (
 -- list connections between master ports and signals
+	b_data => b_data,
+	blank_n => blank_n,
 	clk_50m => clk_50m,
-	href => href,
-	i2c_scl => i2c_scl,
-	i2c_sda => i2c_sda,
-	pclk => pclk,
-	pixel_data => pixel_data,
+	g_data => g_data,
+	r_data => r_data,
+	ram_pixel_data => ram_pixel_data,
+	ram_rdaddress => ram_rdaddress,
+	ram_rdclk => ram_rdclk,
+	ram_rden => ram_rden,
 	rst_n => rst_n,
-	VGA_B => VGA_B,
-	VGA_BLANK_N => VGA_BLANK_N,
-	VGA_CLK => VGA_CLK,
-	VGA_G => VGA_G,
-	VGA_HS => VGA_HS,
-	VGA_R => VGA_R,
-	VGA_SYNC_N => VGA_SYNC_N,
-	VGA_VS => VGA_VS,
-	vsyn => vsyn,
-	xclk_25m => xclk_25m
+	sync_n => sync_n,
+	vga_clk => vga_clk,
+	vga_h => vga_h,
+	vga_v => vga_v
 	);
 init : PROCESS                                               
 -- variable declarations                                     
@@ -106,4 +97,4 @@ BEGIN
         -- code executes for every event on sensitivity list  
 WAIT;                                                        
 END PROCESS always;                                          
-END VirtualPiano_arch;
+END vga_interface_arch;
