@@ -25,7 +25,8 @@
 -- 
 
 LIBRARY ieee;                                               
-USE ieee.std_logic_1164.all;                                
+USE ieee.std_logic_1164.all;    
+use ieee.std_logic_unsigned.all;                            
 
 ENTITY vga_interface_vhd_tst IS
 END vga_interface_vhd_tst;
@@ -34,10 +35,10 @@ ARCHITECTURE vga_interface_arch OF vga_interface_vhd_tst IS
 -- signals                                                   
 SIGNAL b_data : STD_LOGIC_VECTOR(7 DOWNTO 0);
 SIGNAL blank_n : STD_LOGIC;
-SIGNAL clk_50m : STD_LOGIC;
+SIGNAL clk_50m : STD_LOGIC := '0';
 SIGNAL g_data : STD_LOGIC_VECTOR(7 DOWNTO 0);
 SIGNAL r_data : STD_LOGIC_VECTOR(7 DOWNTO 0);
-SIGNAL ram_pixel_data : STD_LOGIC_VECTOR(7 DOWNTO 0);
+SIGNAL ram_pixel_data : STD_LOGIC_VECTOR(7 DOWNTO 0) := (others => '0');
 SIGNAL ram_rdaddress : STD_LOGIC_VECTOR(16 DOWNTO 0);
 SIGNAL ram_rdclk : STD_LOGIC;
 SIGNAL ram_rden : STD_LOGIC;
@@ -86,7 +87,9 @@ BEGIN
 init : PROCESS                                               
 -- variable declarations                                     
 BEGIN                                                        
-        -- code that executes only once                      
+rst_n <= '0';
+wait for 50 ns;
+rst_n <= '1';                   
 WAIT;                                                       
 END PROCESS init;                                           
 always : PROCESS                                              
@@ -94,7 +97,8 @@ always : PROCESS
 -- (        )                                                 
 -- variable declarations                                      
 BEGIN                                                         
-        -- code executes for every event on sensitivity list  
-WAIT;                                                        
+wait for 20 ns;
+clk_50m <= not clk_50m;
+ram_pixel_data <= ram_pixel_data + 1;
 END PROCESS always;                                          
 END vga_interface_arch;

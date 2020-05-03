@@ -4,12 +4,10 @@
 --
 -- 功能: 将ram中的图像通过VGA进行显示, 采用640x480@60hz
 --
--- 描述: 由于新采购的核心板VGA接口是采用的RGB565, 应该是自动补全了低位, 数据输入
---       就采用将8位ram数据的高5位赋值给RGB, 其中G的第六位赋0, 这样就能显示灰度图.
---       当上游模块在写入ram时, 为了保证不同时读写就先让vga被屏蔽, 因为这个主要是
---       为了调试, 实际钢琴系统不需要把图像显示出来, 所以无需部署算法使图像流畅.
---       初始版本采用一直读取, 同时读写, 看看效果. 由于将ram读取功能也包含在内, 
---       因此需要使用状态机进行控制, 但是也比较简单.
+-- 描述: 产生vga模块需要的同步信号以及相应的RGB数据. 暂时采用灰度图输出, 所以RGB像素相同
+--       当上游模块在写入ram时, 因为这个主要是为了调试, 实际钢琴系统不需要把图像显示出来
+--       像显示出来, 所以无需部署算法使图像流畅.由于将ram读取功能也包含在内, 因此需要使
+--       用状态机进行控制, 但是也比较简单.
 -------------------------------------------------------------------------
 -------------------------------------------------------------------------
 library ieee;
@@ -73,6 +71,10 @@ architecture bhv of vga_interface is
 	constant h_active_time : integer := 640;
 	constant h_front_porch : integer := 16;
 	
+	--行列显示起始像素位置. 由于采集图像为320*240, 因此可以在屏幕中做一些移动
+	constant original_x : integer := 160;
+	constant original_y : integer := 120;
+	
 	--像素时钟为25mhz, 由输入时钟进行分频得到
 	signal clk_25m : std_logic := '0';
 	
@@ -87,14 +89,19 @@ architecture bhv of vga_interface is
 	
 	--内部信号
 	signal ramclk : std_logic := '0';
-	signal ramaddress : integer range 0 to ram_rddepth := ram_rddepth - 1;
+	signal ramaddress : integer range 0 to ram_rddepth - 1 := ram_rddepth - 1;
+	--signal ramaddress_impulse : std_logic := '0';  --ram读地址计数脉冲
+	signal ramaddress_count_en : std_logic := '0';   --ram读地址计数使能
+	
 	signal R :  std_logic_vector(red_width - 1 downto 0) := (others => '0');    --R5
 	signal G :  std_logic_vector(green_width - 1 downto 0) := (others => '0');  --G6
 	signal B :  std_logic_vector(blue_width - 1 downto 0) := (others => '0');   --B5
 begin
-	--输出数据赋值
+	--RAM输出数据赋值
 	ram_rdaddress <= std_logic_vector(to_unsigned(ramaddress, ram_awidth));
-	ram_rdclk <= ramclk;
+	ram_rdclk <= clk_25m;
+	
+	--VGA输出
 	r_data <= R;
 	g_data <= G;
 	b_data <= B;
@@ -163,13 +170,12 @@ begin
 		end if;
 	end process;
 	
-	--ram相关数据生成. ram读时钟与vga像素时钟应该相同, 为25mhz, 那么控制ram_rdclk应该就是50mhz
-	--在vga像素时钟上升沿时三个输出数据应该稳定, 因此用50mhz下降沿控制状态机
+--	--在vga像素时钟上升沿时三个输出数据应该稳定
 	process(rst_n, clk_50m)
 	begin
 		if(rst_n = '0') then
 			cur_state <= idle;
-		elsif(clk_50m'event and clk_50m = '0') then
+		elsif(clk_50m'event and clk_50m = '1') then
 			cur_state <= next_state;		
 		end if;
 	end process;
@@ -179,10 +185,10 @@ begin
 	begin
 		next_state <= cur_state;
 		case cur_state is
-		--当行, 帧计数器到达active开始读取ram数据
+		--当行, 帧计数器到达active+原点坐标时开始读取ram数据
 		when idle =>
-			if(h_count = h_sync_pulse + h_back_porch - 1 and
-				v_count = v_sync_pulse + v_back_porch) then   --由于状态机用50mhz时钟控制, 较之场计数信号变化快得多, 因此此处不减一
+			if(h_count = original_x + h_sync_pulse + h_back_porch - 1 - 1 and
+				v_count = original_y + v_sync_pulse + v_back_porch) then   --由于状态机用50mhz时钟控制, 较之场计数信号变化快得多, 因此此处不减一
 				next_state <= set_rden;
 			else
 				next_state <= idle;
@@ -195,20 +201,21 @@ begin
 			next_state <= prepare_address;
 		
 		when prepare_address =>
-			if(h_count = h_sync_pulse + h_back_porch + image_width - 1 ) then
+			if(h_count = original_x + h_sync_pulse + h_back_porch + image_width - 1 - 1) then
 				next_state <= line_wait;
 			else
 				next_state <= read_data;
 			end if;
 		--读完一行但是没读完一帧, 在此状态逗留, 直到下一行开始
 		when line_wait =>
-			if(v_count = v_sync_pulse + v_back_porch + image_height) then  --v_count代表第几行(0开始), 因此此处不减一
+			if(v_count = original_y + v_sync_pulse + v_back_porch + image_height) then  --v_count代表第几行(0开始), 当前行数据要显示完, 因此此处加一
 				next_state <= idle;
-			elsif(h_count = h_sync_pulse + h_back_porch - 1) then
+			elsif(h_count = original_x + h_sync_pulse + h_back_porch - 1 - 1) then
 				next_state <= set_rden;
 			else
 				next_state <= line_wait;
 			end if;
+			
 		when others => null;
 		end case;
 	end process;
@@ -219,33 +226,46 @@ begin
 		
 		case cur_state is
 		when idle =>
-			ramclk <= '0';
-			ramaddress <= 0;
 			ram_rden <= '0';
+			ramaddress_count_en <= '0';
 		
 		when set_rden =>
-			ramclk <= '0';
 			ram_rden <= '1';
+			ramaddress_count_en <= '0';
 		
 		when read_data =>
-			ramclk <= '1';
 			ram_rden <= '1';
+			ramaddress_count_en <= '1';
 		
 		when prepare_address =>
-			ramclk <= '0';
 			ram_rden <= '1';
-			if(ramaddress = ram_rddepth - 1) then
-				ramaddress <= 0;
-			else
-				ramaddress <= ramaddress + 1;
-			end if;
+			ramaddress_count_en <= '1';
 		
 		when line_wait =>
-			ramclk <= '0';
 			ram_rden <= '0';
+			ramaddress_count_en <= '0';
 		
 		when others => null;
 		end case;
+	end process;
+	
+	--ram读地址生成
+	process(cur_state, clk_25m, ramaddress_count_en)
+	begin
+		if(cur_state = idle) then
+			ramaddress <= 0;
+		elsif(clk_25m'event and clk_25m = '0') then
+			if(ramaddress_count_en = '1') then
+				if(ramaddress = ram_rddepth - 1) then
+					ramaddress <= 0;
+				else
+					ramaddress <= ramaddress + 1;
+				end if;
+			else
+				ramaddress <= ramaddress;
+			end if;
+		end if;
+	
 	end process;
 	
 	--颜色数据生成
@@ -257,13 +277,16 @@ begin
 			B <= (others => '0');
 			
 		--当行,场计数器在像素点为(0-320,0-240)范围内, rgb输出为ram上的数据
-		elsif(h_count >= h_sync_pulse + h_back_porch - 1 and 
-				h_count <= h_sync_pulse + h_back_porch + image_width - 1 and
-				v_count >= v_sync_pulse + v_back_porch  and
-				v_count <= v_sync_pulse + v_back_porch + image_height - 1) then
+		elsif(h_count >= original_x + h_sync_pulse + h_back_porch and 
+				h_count <= original_x + h_sync_pulse + h_back_porch + image_width - 1 and
+				v_count >= original_y + v_sync_pulse + v_back_porch  and
+				v_count <= original_y + v_sync_pulse + v_back_porch + image_height - 1) then
 			R <= ram_pixel_data;
 			G <= ram_pixel_data;
 			B <= ram_pixel_data;
+--			R <= "10000000";
+--			G <= "00000000";
+--			B <= "00000000";
 			
 		else
 			R <= (others => '0');

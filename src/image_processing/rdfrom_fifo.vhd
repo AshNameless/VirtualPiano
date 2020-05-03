@@ -5,8 +5,8 @@
 -- 功能: 监测到camera_ctler的frame_ready信号后, 开始读取一帧数据, 同时向输出数据以及
 --       data_valid供后续模块使用. 
 --
--- 描述: 由简单状态机控制. idle态监测到frame_ready信号后, 先拉高rd_req电平, 然后再发送
---       读时钟, 进行数据读取
+-- 描述: 由简单状态机控制. idle态监测到frame_ready信号后, 先拉高rd_req电平, 然后
+--       进行数据读取
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 library ieee;
@@ -33,7 +33,7 @@ port(
 	
 	--与fifo交互
 	pixel_data : in std_logic_vector(pixel_data_width - 1 downto 0);   --fifo输出数据
-	rd_empty : in std_logic;          --读空信号. 若时序控制正确则此信号应在计数器最大时才置位
+	rd_empty : in std_logic;          --读空信号. 若时序控制正确则此信号应在计数器最大时才有效
 	rd_clk : out std_logic;           --读时钟
 	rd_req : out std_logic;           --读请求
 	
@@ -53,6 +53,7 @@ architecture bhv of rdfrom_fifo is
 	type state is (idle, set_req, read_data);
 	signal cur_state : state := idle;
 	signal next_state : state := idle;
+	
 begin
 	--输出赋值
 	rd_clk <= clk_50m;
@@ -122,9 +123,9 @@ begin
 			data_valid <= '0';
 			rd_req <= '0';
 			
-		when  set_req =>
+		when set_req =>
 			pixel_count_en <= '1';
-			data_valid <= '0';
+			data_valid <= '1';
 			rd_req <= '1';
 		
 		when read_data =>

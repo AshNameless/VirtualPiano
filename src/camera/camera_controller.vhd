@@ -40,7 +40,8 @@ port(
 	fifo_data : out std_logic_vector(pixel_data_width - 1 downto 0);     --写到fifo的数据
 	fifo_wreq : out std_logic;       --fifo写请求
 	fifo_wclk : out std_logic;       --fifo写时钟
-	fifo_wrfull : in std_logic       --fifo写满
+	fifo_wrfull : in std_logic;      --fifo写满
+	fifo_aclr : out std_logic        --fifo异步清零
 );
 end entity camera_controller;
 -------------------------------------------------------
@@ -56,7 +57,7 @@ architecture bhv of camera_controller is
 	--camera2fifo相关内部信号定义.
 	signal rst_cam : std_logic := '0';
 	
-	--共需配置13个寄存器
+	--共需配置register_num个寄存器
 	signal reg_count : integer range 0 to register_num := 0;
 	signal reg_count_impulse : std_logic := '0';    --从initilization_0到initilization_1有一个触发脉冲, 对计数器进行计数
 	
@@ -99,7 +100,8 @@ architecture bhv of camera_controller is
 	fifo_data : out std_logic_vector(pixel_data_width - 1 downto 0);
 	fifo_wreq : out std_logic;
 	fifo_wclk : out std_logic;
-	fifo_wrfull : in std_logic
+	fifo_wrfull : in std_logic;
+	fifo_aclr : out std_logic
 	);
 	end component;
 	
@@ -127,7 +129,8 @@ begin
 	fifo_data,
 	fifo_wreq,
 	fifo_wclk,
-	fifo_wrfull
+	fifo_wrfull,
+	fifo_aclr
 	);
 	
 	xclk_25m <= xclk;

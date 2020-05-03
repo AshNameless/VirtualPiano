@@ -141,7 +141,7 @@ package constants is
 	constant ov7670_device_address : std_logic_vector(7 downto 0) := x"42";  --7670写地址x42
 	--寄存器宽度及需要配置的寄存器个数
 	constant ov7670_reg_dwidth : integer := 24;
-	constant ov7670_reg_num : integer := 8;
+	constant ov7670_reg_num : integer := 14 + 4;
 	--ov7670输出Y数据为8位
 	constant ov7670_output_width : integer := 8;
 	--图像分辨率
@@ -150,7 +150,7 @@ package constants is
 	
 	--以下为i2c写入数据. 器件地址 & 寄存器地址 & 寄存器值
 	--------------复位及输出选择寄存器-------------------
-	--暂不使用软件复位, 配置为YUV格式输出, VGA
+	--暂不使用软件复位, 配置为YUV格式输出, QVGA
 	constant ov7670_reset_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"12" & x"80";
 	constant ov7670_reset_config_qvga : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"12" & x"10";
 	--------------时钟设置寄存器-------------------
@@ -159,14 +159,14 @@ package constants is
 	
 	--------------PLL设置寄存器-------------------
 	--关闭PLL寄存器, 0分频
-	constant ov7670_pll_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"6b" & x"00";
+	constant ov7670_pll_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"6b" & x"0a";
 	
 	--------------PCLK及拉伸-------------------
 	--normal PLCK, 不拉伸
 	constant ov7670_pclk_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"3e" & x"00";
 	
 	--------------YUV和输出范围设置-------------------
-	--设置输出范围00-ff.
+	--设置输出范围. 00-ff是x"c0", 01-fe是x"80"
 	constant ov7670_yuvrange_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"40" & x"c0";
 	
 	--------------TLSB设置-------------------
@@ -175,8 +175,7 @@ package constants is
 	constant ov7670_tlsb_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"3a" & x"08";
 	constant ov7670_3d_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"3d" & x"80";
 	
-	-------暂时不使用下面的, 看看效果
-	--输出窗口相关设置, START和STOP应该就是帧/场同步信号的起始和结束计数值,这里按照默认设置,经过计算恰好是相差640和480
+	--输出窗口相关设置, START和STOP应该就是帧/场同步信号的起始和结束计数值,设置320*640窗口
 	--------------HREF设置-------------------
 	constant ov7670_href_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"32" & x"80";
 	
@@ -184,20 +183,35 @@ package constants is
 	constant ov7670_vref_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"03" & x"0a";
 	
 	--------------HSTART设置-------------------
-	constant ov7670_hstart_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"17" & x"11";
+	constant ov7670_hstart_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"17" & x"17";
 	
 	--------------HSTOP设置-------------------
-	constant ov7670_hstop_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"18" & x"61";
+	constant ov7670_hstop_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"18" & x"05";
 	
 	--------------VSTART设置-------------------
-	constant ov7670_vstart_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"19" & x"03";
+	constant ov7670_vstart_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"19" & x"02";
 	
 	--------------VSTOP设置-------------------
 	constant ov7670_vstop_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"1a" & x"7b";
 	
+	--条纹滤波器配置
+	--enable滤波器
+	constant ov7670_filteren_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"13" & x"ef";
+	--50hz 设置
+	constant ov7670_50hz1_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"9d" & x"4c";
+	constant ov7670_50hz2_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"a5" & x"05";
+	--选择50hz 的滤波器
+	constant ov7670_filtersel_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"3b" & x"0a";
+	
+	--输出测试寄存器. 可以生成彩条, 渐变灰等, 两个寄存器为最高位均为0时则关闭
+	constant ov7670_outtest0_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"70" & x"3a";
+	constant ov7670_outtest1_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"71" & x"35";
+	
+	
 	--在ov7670初始化时, 将寄存器计数值转化为对应的寄存器数据
 	procedure camera_regcount2data(signal num : in integer range 0 to ov7670_reg_num; 
 								         signal x : out std_logic_vector(ov7670_reg_dwidth - 1 downto 0));
+
 
 	-------------------------
 	--OV7725
@@ -316,6 +330,18 @@ package body constants is
 		when 5 => x <= ov7670_yuvrange_config;
 		when 6 => x <= ov7670_tlsb_config;
 		when 7 => x <= ov7670_3d_config;
+		when 8 => x <= ov7670_href_config;
+		when 9 => x <= ov7670_vref_config;
+		when 10 => x <= ov7670_hstart_config;
+		when 11 => x <= ov7670_hstop_config;
+		when 12 => x <= ov7670_vstart_config;
+		when 13 => x <= ov7670_vstop_config;
+		when 14 => x <= ov7670_filtersel_config;
+		when 15 => x <= ov7670_50hz1_config;
+		when 16 => x <= ov7670_50hz2_config;
+		when 17 => x <= ov7670_filteren_config;
+--		when 18 => x <= ov7670_outtest0_config;
+--		when 19 => x <= ov7670_outtest1_config;
 		when others => x<= (others => '0');
 		end case;
 	end procedure camera_regcount2data;
