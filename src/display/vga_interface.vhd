@@ -25,7 +25,7 @@ generic(
 	
 	--ram相关参数
 	ram_awidth : integer := 17;
-	ram_dwidth : integer := 8;
+	ram_dwidth : integer := 16;
 	ram_rddepth : integer := 76800;
 	
 	--图像信息
@@ -38,9 +38,9 @@ port(
 	rst_n : in std_logic;
 	
 	--与vga器件交互
-	r_data : out std_logic_vector(red_width - 1 downto 0);    --R5
-	g_data : out std_logic_vector(green_width - 1 downto 0);  --G6
-	b_data : out std_logic_vector(blue_width - 1 downto 0);   --B5
+	r_data : out std_logic_vector(red_width - 1 downto 0);    --R
+	g_data : out std_logic_vector(green_width - 1 downto 0);  --G
+	b_data : out std_logic_vector(blue_width - 1 downto 0);   --B
 	vga_h : out std_logic;    --行同步信号
 	vga_v : out std_logic;    --场同步信号
 	vga_clk : out std_logic;  --vga时钟
@@ -96,10 +96,13 @@ architecture bhv of vga_interface is
 	signal R :  std_logic_vector(red_width - 1 downto 0) := (others => '0');    --R5
 	signal G :  std_logic_vector(green_width - 1 downto 0) := (others => '0');  --G6
 	signal B :  std_logic_vector(blue_width - 1 downto 0) := (others => '0');   --B5
+	signal pixel_data :  std_logic_vector(ram_dwidth - 1 downto 0) := (others => '0');
 begin
 	--RAM输出数据赋值
 	ram_rdaddress <= std_logic_vector(to_unsigned(ramaddress, ram_awidth));
 	ram_rdclk <= clk_25m;
+	--RGB565第一个字节高5位为R分量, 赋值给pixel_data
+	pixel_data <=  ram_pixel_data;
 	
 	--VGA输出
 	r_data <= R;
@@ -269,24 +272,25 @@ begin
 	end process;
 	
 	--颜色数据生成
-	process(rst_n, ram_pixel_data)
+	process(rst_n, pixel_data)
 	begin
 		if(rst_n = '0') then
 			R <= (others => '0');
 			G <= (others => '0');
 			B <= (others => '0');
 			
-		--当行,场计数器在像素点为(0-320,0-240)范围内, rgb输出为ram上的数据
+		--当行,场计数器在像素点为([0-320] + original_x, [0-240] + original_y)范围内, rgb输出为ram上的数据
 		elsif(h_count >= original_x + h_sync_pulse + h_back_porch and 
 				h_count <= original_x + h_sync_pulse + h_back_porch + image_width - 1 and
 				v_count >= original_y + v_sync_pulse + v_back_porch  and
 				v_count <= original_y + v_sync_pulse + v_back_porch + image_height - 1) then
-			R <= ram_pixel_data;
-			G <= ram_pixel_data;
-			B <= ram_pixel_data;
---			R <= "10000000";
+			--输出为RGB565
+			R <= pixel_data(15 downto 11) & "000";
+			G <= pixel_data(10 downto 5) & "00";
+			B <= pixel_data(4 downto 0) & "000";
+--			R <= "00000000";
 --			G <= "00000000";
---			B <= "00000000";
+--			B <= "10000000";
 			
 		else
 			R <= (others => '0');

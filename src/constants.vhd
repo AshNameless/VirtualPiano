@@ -141,7 +141,7 @@ package constants is
 	constant ov7670_device_address : std_logic_vector(7 downto 0) := x"42";  --7670写地址x42
 	--寄存器宽度及需要配置的寄存器个数
 	constant ov7670_reg_dwidth : integer := 24;
-	constant ov7670_reg_num : integer := 14 + 4;
+	constant ov7670_reg_num : integer := 19 + 32;
 	--ov7670输出Y数据为8位
 	constant ov7670_output_width : integer := 8;
 	--图像分辨率
@@ -150,102 +150,66 @@ package constants is
 	
 	--以下为i2c写入数据. 器件地址 & 寄存器地址 & 寄存器值
 	--------------复位及输出选择寄存器-------------------
-	--暂不使用软件复位, 配置为YUV格式输出, QVGA
+	--暂不使用软件复位, 配置为RGB格式输出, QVGA. rgb+qvga为x"14", yuv+qvag为x"10"
 	constant ov7670_reset_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"12" & x"80";
-	constant ov7670_reset_config_qvga : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"12" & x"10";
+	constant ov7670_reset_config_qvga : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"12" & x"14";
 	--------------时钟设置寄存器-------------------
-	--使用外部时钟
-	constant ov7670_clkreg_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"11" & x"80";
+	--输入时钟经过pll后的分频控制
+	constant ov7670_clkreg_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"11" & x"01";
 	
 	--------------PLL设置寄存器-------------------
-	--关闭PLL寄存器, 0分频
-	constant ov7670_pll_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"6b" & x"0a";
+	--pll设置. 此处将输出时钟乘4, 得到100mhz. 再经过上面的分频除以4, 得到25mhz, 作为摄像头内部工作时钟
+	constant ov7670_pll_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"6b" & x"4a";
 	
 	--------------PCLK及拉伸-------------------
 	--normal PLCK, 不拉伸
 	constant ov7670_pclk_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"3e" & x"00";
 	
-	--------------YUV和输出范围设置-------------------
-	--设置输出范围. 00-ff是x"c0", 01-fe是x"80"
-	constant ov7670_yuvrange_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"40" & x"c0";
+	--------------输出范围设置-------------------
+	--设置输出范围. 同时可以设置RGB输出格式. 此处设为rgb565, 输出范围00-ff
+	constant ov7670_range_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"40" & x"d0";
 	
 	--------------TLSB设置-------------------
 	--正常YUV模式, 此寄存器第4位与x"3d"寄存器最低位共通选择YUV输出顺序
 	--此外, 地址为3d的寄存器还可以管理gamma校正. 此处打开gamma,并且tlsb[3]=1 3d[0]=0, 输出顺序为UYVY, 低字节为Y值
-	constant ov7670_tlsb_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"3a" & x"08";
-	constant ov7670_3d_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"3d" & x"80";
+	constant ov7670_tlsb_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"3a" & x"00";
+	constant ov7670_3d_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"3d" & x"c0";
 	
 	--输出窗口相关设置, START和STOP应该就是帧/场同步信号的起始和结束计数值,设置320*640窗口
 	--------------HREF设置-------------------
-	constant ov7670_href_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"32" & x"80";
+	constant ov7670_href_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"32" & x"80";--80
 	
 	--------------VREF设置-------------------
-	constant ov7670_vref_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"03" & x"0a";
+	constant ov7670_vref_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"03" & x"0a";--0a
 	
 	--------------HSTART设置-------------------
-	constant ov7670_hstart_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"17" & x"17";
+	constant ov7670_hstart_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"17" & x"16";--16
 	
 	--------------HSTOP设置-------------------
-	constant ov7670_hstop_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"18" & x"05";
+	constant ov7670_hstop_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"18" & x"04";--04
 	
 	--------------VSTART设置-------------------
-	constant ov7670_vstart_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"19" & x"02";
+	constant ov7670_vstart_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"19" & x"02";--02
 	
 	--------------VSTOP设置-------------------
-	constant ov7670_vstop_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"1a" & x"7b";
+	constant ov7670_vstop_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"1a" & x"7a";--7a
 	
 	--条纹滤波器配置
-	--enable滤波器
-	constant ov7670_filteren_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"13" & x"ef";
+	--enable滤波器, 启自动增益补偿AGC, 自动白平衡AWB
+	constant ov7670_filteren_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"13" & x"e1";
 	--50hz 设置
 	constant ov7670_50hz1_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"9d" & x"4c";
 	constant ov7670_50hz2_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"a5" & x"05";
 	--选择50hz 的滤波器
 	constant ov7670_filtersel_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"3b" & x"0a";
 	
-	--输出测试寄存器. 可以生成彩条, 渐变灰等, 两个寄存器为最高位均为0时则关闭
-	constant ov7670_outtest0_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"70" & x"3a";
-	constant ov7670_outtest1_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"71" & x"35";
-	
+	--白平衡增益使能, 同时管理自动de-noise功能
+	constant ov7670_awbgain_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"41" & x"08";
 	
 	--在ov7670初始化时, 将寄存器计数值转化为对应的寄存器数据
 	procedure camera_regcount2data(signal num : in integer range 0 to ov7670_reg_num; 
 								         signal x : out std_logic_vector(ov7670_reg_dwidth - 1 downto 0));
 
-
-	-------------------------
-	--OV7725
-	-------------------------
-	--利用i2c对OV7725进行配置, 7725器件7bits地址 + 1bit读写指示
-	constant ov7725_device_address : std_logic_vector(7 downto 0) := x"42";  --7725写地址
-	--寄存器宽度及需要配置的寄存器个数
-	constant ov7725_reg_dwidth : integer := 24;
-	constant ov7725_reg_num : integer := 11;
-	--ov7670输出Y数据为8位
-	constant ov7725_output_width : integer := 8;
-	--图像分辨率
-	constant ov7725_image_width : integer := 320;
-	constant ov7725_image_height : integer := 240;
-	
-	--------------复位寄存器-------------------
-	--最高位置1fuewi
-	constant ov7725_reset_config : std_logic_vector(ov7725_reg_dwidth - 1 downto 0) := ov7725_device_address & x"12" & x"80";
-	--选择qvga,yuv 只不过和复位信号在一个寄存器里. 
-	constant ov7725_reset_config_qvga : std_logic_vector(ov7725_reg_dwidth - 1 downto 0) := ov7725_device_address & x"12" & x"40";
-	--反转y/uv的顺序, 不论uyvy还是vyuy都是可以的, 只要y是第二个时钟开始输出
-	constant ov7725_yuv_config : std_logic_vector(ov7725_reg_dwidth - 1 downto 0) := ov7725_device_address & x"0c" & x"10";
-	
-	--qvga图片格式相关设置
-	constant ov7725_hstart_config : std_logic_vector(ov7725_reg_dwidth - 1 downto 0) := ov7725_device_address & x"17" & x"3f";
-	constant ov7725_hsize_config : std_logic_vector(ov7725_reg_dwidth - 1 downto 0) := ov7725_device_address & x"18" & x"50";
-	constant ov7725_vstart_config : std_logic_vector(ov7725_reg_dwidth - 1 downto 0) := ov7725_device_address & x"19" & x"03";
-	constant ov7725_vsize_config : std_logic_vector(ov7725_reg_dwidth - 1 downto 0) := ov7725_device_address & x"1a" & x"78";
-	constant ov7725_Houtsize_config : std_logic_vector(ov7725_reg_dwidth - 1 downto 0) := ov7725_device_address & x"29" & x"50";
-	constant ov7725_Voutsize_config : std_logic_vector(ov7725_reg_dwidth - 1 downto 0) := ov7725_device_address & x"2c" & x"78";
-	--内部时钟及pclk
-	constant ov7725_pll_config : std_logic_vector(ov7725_reg_dwidth - 1 downto 0) := ov7725_device_address & x"0d" & x"41";
-	constant ov7725_clkrc_config : std_logic_vector(ov7725_reg_dwidth - 1 downto 0) := ov7725_device_address & x"11" & x"01";
-	
 end package constants;
 
 package body constants is
@@ -327,7 +291,7 @@ package body constants is
 		when 2 => x <= ov7670_clkreg_config; 
 		when 3 => x <= ov7670_pll_config;
 		when 4 => x <= ov7670_pclk_config;
-		when 5 => x <= ov7670_yuvrange_config;
+		when 5 => x <= ov7670_range_config;
 		when 6 => x <= ov7670_tlsb_config;
 		when 7 => x <= ov7670_3d_config;
 		when 8 => x <= ov7670_href_config;
@@ -340,9 +304,59 @@ package body constants is
 		when 15 => x <= ov7670_50hz1_config;
 		when 16 => x <= ov7670_50hz2_config;
 		when 17 => x <= ov7670_filteren_config;
---		when 18 => x <= ov7670_outtest0_config;
---		when 19 => x <= ov7670_outtest1_config;
-		when others => x<= (others => '0');
+		when 18 => x <= ov7670_awbgain_config;
+		--自动黑电平校正相关配置
+		when 19 => x <= ov7670_device_address & x"b084";
+		when 20 => x <= ov7670_device_address & x"b10c";
+		when 21 => x <= ov7670_device_address & x"b20e";
+		when 22 => x <= ov7670_device_address & x"b382";
+		when 23 => x <= ov7670_device_address & x"b80a";
+		--色彩矩阵
+		when 24 => x <= ov7670_device_address & x"4f80";
+		when 25 => x <= ov7670_device_address & x"5080";
+		when 26 => x <= ov7670_device_address & x"5100";
+		when 27 => x <= ov7670_device_address & x"5222";
+		when 28 => x <= ov7670_device_address & x"535e";
+		when 29 => x <= ov7670_device_address & x"5480";
+		when 30 => x <= ov7670_device_address & x"589e";
+		--gamma参数
+		when 31 => x <= ov7670_device_address & x"7a20";
+		when 32 => x <= ov7670_device_address & x"7b1c";
+		when 33 => x <= ov7670_device_address & x"7c28";
+		when 34 => x <= ov7670_device_address & x"7d3c";
+		when 35 => x <= ov7670_device_address & x"7e55";
+		when 36 => x <= ov7670_device_address & x"7f68";
+		when 37 => x <= ov7670_device_address & x"8076";
+		when 38 => x <= ov7670_device_address & x"8180";
+		when 39 => x <= ov7670_device_address & x"8288";
+		when 40 => x <= ov7670_device_address & x"838f";
+		when 41 => x <= ov7670_device_address & x"8496";
+		when 42 => x <= ov7670_device_address & x"85a3";
+		when 43 => x <= ov7670_device_address & x"86af";
+		when 44 => x <= ov7670_device_address & x"87c4";
+		when 45 => x <= ov7670_device_address & x"88d7";
+		when 46 => x <= ov7670_device_address & x"89e8";
+		--设置蓝色, 红色增益, 绿色增益
+		when 47 => x <= ov7670_device_address & x"0164";
+		when 48 => x <= ov7670_device_address & x"024f";
+		when 49 => x <= ov7670_device_address & x"6a40";
+		--噪声抑制等级
+		when 50 => x <= ov7670_device_address & x"4cff";
+		--awb控制参数 magic
+--		when 47 => x <= ov7670_device_address & x"4314";
+--		when 48 => x <= ov7670_device_address & x"44f0";
+--		when 49 => x <= ov7670_device_address & x"4534";
+--		when 50 => x <= ov7670_device_address & x"4658";
+--		when 51 => x <= ov7670_device_address & x"4728";
+--		when 52 => x <= ov7670_device_address & x"483a";
+--		when 53 => x <= ov7670_device_address & x"5988";
+--		when 54 => x <= ov7670_device_address & x"5a88";
+--		when 55 => x <= ov7670_device_address & x"5b44";
+--		when 56 => x <= ov7670_device_address & x"5c67";
+--		when 57 => x <= ov7670_device_address & x"5d49";
+--		when 58 => x <= ov7670_device_address & x"5e0e";
+		
+		when others => x<= (others => '1');
 		end case;
 	end procedure camera_regcount2data;
 

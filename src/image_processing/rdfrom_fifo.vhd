@@ -6,7 +6,7 @@
 --       data_valid供后续模块使用. 
 --
 -- 描述: 由简单状态机控制. idle态监测到frame_ready信号后, 先拉高rd_req电平, 然后
---       进行数据读取
+--       进行数据读取. 50mhz读取fifo数据太快了, 因此分频成25mhz读取
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 library ieee;
@@ -25,11 +25,14 @@ port(
 	rst_n : in std_logic;
 	clk_50m : in std_logic;
 	
-	--输出data_valid信号, 输出像素有多少该信号就置位多少个时钟周期
+	--输出data_valid信号, 输出x个字节则该信号就置位x+1个时钟周期
 	data_valid : out std_logic;
 	
 	--输出像素数据, 与fifo数据相同
 	output_data : out std_logic_vector(pixel_data_width - 1 downto 0);
+	
+	--输出像素同步时钟
+	clk_pixel : out std_logic;
 	
 	--与fifo交互
 	pixel_data : in std_logic_vector(pixel_data_width - 1 downto 0);   --fifo输出数据
@@ -44,8 +47,8 @@ end entity rdfrom_fifo;
 -------------------------------------------------------
 -------------------------------------------------------
 architecture bhv of rdfrom_fifo is
-	--像素点总数及读取计数信号
-	constant pixel_num : integer := image_width * image_height;
+	--像素点总数及读取计数信号. 因为一个像素点由两个字节数据, 因此此处乘2
+	constant pixel_num : integer := image_width * image_height * 2;
 	signal pixel_count : integer range 0 to pixel_num := 0;
 	signal pixel_count_en : std_logic := '0';
 
@@ -54,17 +57,31 @@ architecture bhv of rdfrom_fifo is
 	signal cur_state : state := idle;
 	signal next_state : state := idle;
 	
+	--25mhz时钟
+	signal clk_25m : std_logic := '0';
+	
 begin
 	--输出赋值
-	rd_clk <= clk_50m;
+	clk_pixel <= clk_25m;
+	rd_clk <= clk_25m;
 	output_data <= pixel_data;
 	
-	--像素读取计数器
+	--25mhz时钟产生
 	process(rst_n, clk_50m)
 	begin
 		if(rst_n = '0') then
-			pixel_count <= 0;
+			clk_25m <= '0';
 		elsif(clk_50m'event and clk_50m = '1') then
+			clk_25m <= not clk_25m;
+		end if;
+	end process;
+	
+	--像素读取计数器
+	process(rst_n, clk_25m)
+	begin
+		if(rst_n = '0') then
+			pixel_count <= 0;
+		elsif(clk_25m'event and clk_25m = '1') then
 			if(pixel_count_en = '0' or pixel_count = pixel_num) then
 				pixel_count <= 0;
 			else
@@ -74,11 +91,11 @@ begin
 	end process;
 	
 	--状态转移进程
-	process(rst_n, clk_50m)
+	process(rst_n, clk_25m)
 	begin
 		if(rst_n = '0') then
 			cur_state <= idle;
-		elsif(clk_50m'event and clk_50m = '1') then
+		elsif(clk_25m'event and clk_25m = '1') then
 			cur_state <= next_state;
 		end if;
 	end process;

@@ -17,7 +17,7 @@
 -- suit user's needs .Comments are provided in each section to help the user  
 -- fill out necessary details.                                                
 -- ***************************************************************************
--- Generated on "04/24/2020 13:13:36"
+-- Generated on "05/04/2020 17:57:51"
                                                             
 -- Vhdl Test Bench template for design  :  rdfrom_fifo
 -- 
@@ -33,6 +33,7 @@ ARCHITECTURE rdfrom_fifo_arch OF rdfrom_fifo_vhd_tst IS
 -- constants                                                 
 -- signals                                                   
 SIGNAL clk_50m : STD_LOGIC := '0';
+SIGNAL clk_pixel : STD_LOGIC;
 SIGNAL data_valid : STD_LOGIC;
 SIGNAL frame_ready : STD_LOGIC;
 SIGNAL output_data : STD_LOGIC_VECTOR(7 DOWNTO 0);
@@ -44,6 +45,7 @@ SIGNAL rst_n : STD_LOGIC;
 COMPONENT rdfrom_fifo
 	PORT (
 	clk_50m : IN STD_LOGIC;
+	clk_pixel : OUT STD_LOGIC;
 	data_valid : OUT STD_LOGIC;
 	frame_ready : IN STD_LOGIC;
 	output_data : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
@@ -59,6 +61,7 @@ BEGIN
 	PORT MAP (
 -- list connections between master ports and signals
 	clk_50m => clk_50m,
+	clk_pixel => clk_pixel,
 	data_valid => data_valid,
 	frame_ready => frame_ready,
 	output_data => output_data,
@@ -78,7 +81,7 @@ rd_empty <= '0';
 wait for 25 ns;
 rst_n <= '1';
 frame_ready <= '1';                    
-WAIT;                                                  
+WAIT;                                                       
 END PROCESS init;                                           
 always : PROCESS                                              
 -- optional sensitivity list                                  
@@ -86,6 +89,6 @@ always : PROCESS
 -- variable declarations                                      
 BEGIN                                                         
 wait for 10 ns;
-clk_50m <= not clk_50m;                                                    
+clk_50m <= not clk_50m;                                                 
 END PROCESS always;                                          
 END rdfrom_fifo_arch;

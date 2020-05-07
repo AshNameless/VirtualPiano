@@ -19,22 +19,22 @@ use work.constants.all;
 -------------------------------------------------------
 entity ram_wr_ctler is
 generic(
-	--fifo像素数据信息
-	pixel_data_width : integer := ov7670_output_width;
+	--输入数据宽度
+	pixel_data_width : integer := ov7670_output_width * 2;
 
 	--ram相关参数
-	ram_dwidth : integer := 16;
+	ram_dwidth : integer := 32;
 	ram_awidth : integer := 16;
 	ram_wrdepth : integer := 38400
 );
 port(
 	--输入
 	rst_n : in std_logic;
-	clk_50m : in std_logic;
+	pclk : in std_logic;
 	pixel_data : in std_logic_vector(pixel_data_width - 1 downto 0);
 
-	--rdfrom_fifo输入的帧可读取信号
-	data_valid : in std_logic;        --帧可读取信号
+	--帧同步信号
+	fsyn : in std_logic;        --帧可读取信号
 	
 	--与ram端交互数据
 	ram_wrclk : out std_logic;        --ram写时钟
@@ -60,7 +60,7 @@ architecture bhv of ram_wr_ctler is
 	signal ramaddress_impulse : std_logic := '0';  --地址计数脉冲
 	
 	--状态定义, 两个准备状态, 分别用来准备高字节和低字节
-	type state is (idle, MS_prepare, LS_prepare);
+	type state is (idle, store_lowdata, send_data);
 	signal cur_state : state := idle;
 	signal next_state : state := idle;
 
@@ -73,15 +73,15 @@ begin
 	ram_wrclk <= ramclk;
 	
 	--ram写时钟
-	process(rst_n, cur_state, clk_50m)
+	process(rst_n, cur_state, pclk)
 	begin
 		if(rst_n = '0') then
 			ramclk <= '0';
 		--注意是下降沿
-		elsif(clk_50m'event and clk_50m = '0') then
-			if(cur_state = LS_prepare) then
+		elsif(pclk'event and pclk = '0') then
+			if(cur_state = store_lowdata) then
 				ramclk <= '0';
-			elsif(cur_state = MS_prepare) then
+			elsif(cur_state = send_data) then
 				ramclk <= '1';
 			else
 				ramclk <= not ramclk;
@@ -105,41 +105,40 @@ begin
 	
 	
 	--状态转移进程
-	process(rst_n, clk_50m)
+	process(rst_n, pclk)
 	begin
 		if(rst_n = '0') then
 			cur_state <= idle;
-		elsif(clk_50m'event and clk_50m = '1') then
+		elsif(pclk'event and pclk = '1') then
 			cur_state <= next_state;
 		end if;
 	end process;
 	
 	--次态控制进程
-	--data_valid恰好包含像素个数那么多个时钟, 所以就以它为跳转信号作为同步
-	process(cur_state, data_valid)
+	process(cur_state, fsyn, ramaddress)
 	begin
 		next_state <= idle;
 		
 		case cur_state is
 		when idle =>
-			if(data_valid = '1') then
-				next_state <= LS_prepare;
+			if(fsyn = '1') then
+				next_state <= store_lowdata;
 			else
 				next_state <= idle;
 			end if;
 			
-		when LS_prepare =>
-			if(data_valid = '0') then
+		when store_lowdata =>
+			if(fsyn = '0') then
 				next_state <= idle;
 			else
-				next_state <= MS_prepare;
+				next_state <= send_data;
 			end if;
 		
-		when MS_prepare =>
-			if(data_valid = '0') then
+		when send_data =>
+			if(fsyn = '0' or ramaddress = ram_wrdepth - 1) then
 				next_state <= idle;
 			else
-				next_state <= LS_prepare;
+				next_state <= store_lowdata;
 			end if;
 		
 		when others => null;
@@ -147,33 +146,45 @@ begin
 	end process;
 	
 	--状态机输出控制
-	process(cur_state, data)
+	process(cur_state)
 	begin
 		case cur_state is
 		when idle =>
 			ram_wren <= '0';
 			ramaddress_impulse <= '0';
-			data2ram_low <= (others => '0');
-			data2ram_high <= (others => '0');
 		
-		when LS_prepare =>
+		when store_lowdata =>
 			ramaddress_impulse <= '0';
 			ram_wren <= '1';
-			--赋值低字节
-			data2ram_low <= data;
-			data2ram_high <= data2ram_high;
-
 		
-		when MS_prepare =>
+		when send_data =>
 			ramaddress_impulse <= '1';
 			ram_wren <= '1';
-			--赋值高字节
-			data2ram_low <= data2ram_low;
-			data2ram_high <= data;
 
 		when others => null;
 		end case;
 	end process;
+	
+	--高低字节采集
+	process(pclk, rst_n, next_state)
+	begin
+		if(rst_n = '0') then
+			data2ram_high <= (others => '0');
+			data2ram_low <= (others => '0');
+		elsif(pclk'event and pclk = '1') then
+			if(next_state = store_lowdata) then
+				data2ram_low <= data;
+				data2ram_high <= data2ram_high;
+			elsif(next_state = send_data) then
+				data2ram_high <= data;
+				data2ram_low <= data2ram_low;
+			else
+				data2ram_high <= (others => '0');
+				data2ram_low <= (others => '0');
+			end if;
+		end if;
+	end process;
+	
 end architecture bhv;
 
 

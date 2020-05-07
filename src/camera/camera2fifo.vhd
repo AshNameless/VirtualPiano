@@ -5,10 +5,10 @@
 -- 功能: 从摄像头接收同步信号和数据, 据此产生fifo写时序，将图像数据暂存到fifo中. 当写入一
 --       定数量后, 输出一个触发信号, 示意后续模块可以开始读取.
 --
--- 描述: 利用状态机控制, 从摄像头控制模块得到启动信号后开始启动数据传输,
---       由于YUV输出为UYVY顺序, 故fifo写时钟应当是PCLk的二分频. 输入到fifo数据就一直跟
---       随摄像头输出的数据, 这样比较简单, 只通过写时钟提取出Y数据即可. 写完一帧后
---       等待下一帧, 一直循环.
+-- 描述: 利用状态机控制, 从摄像头控制模块得到启动信号后开始启动数据传输,写完一帧后
+--       等待下一帧, 一直循环. 由于fifo深度问题, 所以写入fifo后以25mhz时钟读取, 计算
+--       可得写入约200行后可以读出. 由于131072的fifo能存储131072/640 = 204.8行数据。
+--        因为摄像头的同步信号已经够使用, 因此fifo写时钟设为pclk, 写使能设为href
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 library ieee;
@@ -44,27 +44,31 @@ end entity camera2fifo;
 architecture bhv of camera2fifo is
 	--写入数据行数计数器.
 	signal line_count : integer range 0 to image_height := 0;
-	signal line_count_impulse : std_logic := '0';
+	signal line_count_impulse : std_logic := '0';  --行计数脉冲
 	
 	--帧可读脉冲触发条件. 写入frame_ready_threshold行后便可以开始连续开始读取240行
-	constant frame_ready_threshold : integer := 239;
+	constant frame_ready_threshold : integer := 203;
 	
 	--定义状态
 	type state is (idle, wait_line, prepare_data, send_data, increment);
 	signal cur_state : state := idle;
 	signal next_state : state := idle;
 	
-	--fifo写时钟
-	signal wrclk : std_logic := '0';
+	--帧可读信号
 	signal ready : std_logic := '0';
 	
+	--行同步信号
+	signal href_inside : std_logic := '0';
 	
 begin
 	--fifo写入数据一直等于摄像头输出, 只通过对fifo写请求和写时钟来完成控制写入
 	fifo_data <= pixel_data_in;
-	fifo_wclk <= wrclk;
+	fifo_wclk <= pclk;
 	fifo_aclr <= not rst_n;
 	frame_ready <= ready;
+	--
+	href_inside <= href;
+	
 	--帧可读信号产生
 	process(line_count, fifo_wrfull)
 	begin
@@ -104,23 +108,23 @@ begin
 			if(fifo_wrfull = '1' or line_count = image_height) then
 				next_state <= idle;
 			elsif(href = '1') then
-				next_state <= prepare_data;
+				next_state <= send_data;
 			else
 				next_state <= wait_line;
-			end if;
-		
-		when prepare_data =>
-			if(fifo_wrfull = '1') then
-				next_state <= idle;
-			else
-				next_state <= send_data;
 			end if;
 		
 		when send_data =>
 			if(fifo_wrfull = '1') then
 				next_state <= idle;
-			elsif(href = '1') then
+			else
 				next_state <= prepare_data;
+			end if;
+		
+		when prepare_data =>
+			if(fifo_wrfull = '1') then
+				next_state <= idle;
+			elsif(href = '1') then
+				next_state <= send_data;
 			else
 				next_state <= increment;
 			end if;
@@ -142,42 +146,31 @@ begin
 	begin
 		case cur_state is
 		when idle =>
-			fifo_wreq <= '0';
 			line_count_impulse <= '0';
 			
 		when wait_line =>
-			fifo_wreq <= '0';
+			line_count_impulse <= '0';
+			
+		when send_data =>
 			line_count_impulse <= '0';
 		
 		when prepare_data =>
-			fifo_wreq <= '1';
-			line_count_impulse <= '0';
-		
-		when send_data =>
-			fifo_wreq <= '1';
 			line_count_impulse <= '0';
 		
 		when increment =>
-			fifo_wreq <= '0';
 			line_count_impulse <= '1';
 			
 		when others => null;
 		end case;
 	end process;
 	
-	--fifo写时钟生成
-	process(rst_n, next_state, pclk)
+	--fifo写使能
+	process(rst_n, next_state, href_inside)
 	begin
-		if(rst_n = '0') then
-			wrclk <= '0';
-		elsif(pclk'event and pclk = '1') then
-			if(next_state = prepare_data) then
-				wrclk <= '0';
-			elsif(next_state = send_data) then
-				wrclk <= '1';
-			else
-				wrclk <= not wrclk;
-			end if;
+		if(rst_n = '0' or next_state = idle) then
+			fifo_wreq <= '0';
+		else
+			fifo_wreq <= href_inside;
 		end if;
 	end process;
 	
