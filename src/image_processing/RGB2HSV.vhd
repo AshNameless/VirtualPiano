@@ -65,7 +65,7 @@ architecture bhv of RGB2HSV is
 	
 	--HSV内部信号
 	signal h_inside : unsigned(numerator_60'length -1  downto 0) := (others => '0');
-	signal s_inside : unsigned(delta_255'length - 1 downto 0) := (others => '0');
+	signal s_inside : unsigned(15 downto 0) := (others => '0');
 	signal v_inside : unsigned(7 downto 0) := (others => '0');
 		
 	--常数
@@ -90,8 +90,8 @@ begin
 	
 	--相对关系
 	order_flag(2) <= '1' when R >= G else '0';
-	order_flag(1) <= '1' when R >= B else '0';
-	order_flag(0) <= '1' when B >= G else '0';
+	order_flag(1) <= '1' when G >= B else '0';
+	order_flag(0) <= '1' when B >= R else '0';
 	
 	--中间值生成
 	process(order_flag, R, G, B)
@@ -137,18 +137,14 @@ begin
 	--H分子乘以60, 将其左移4位减去其左移2位
 	numerator_60 <= numerator&"0000" - numerator&"00";
 	quotient <= numerator_60/delta;
-	delta_255 <= delta&x"00";
+	delta_255 <= delta&x"00" - delta;
 	
-	--计算输出
-	process(rst_n, order_flag, R, G, B, max, quotient, delta_255)
+	--计算H输出
+	process(rst_n, quotient)
 	begin
 		if(rst_n = '0') then
 			h_inside <= (others => '0');
-			s_inside <= (others => '0');
-			v_inside <= (others => '0');
 		else
-			--H
-			h_inside <= (others => '0');
 			case order_flag is
 			when "001" => --R<G<B
 				h_inside <= bias_240 - quotient;
@@ -157,27 +153,37 @@ begin
 			when "011" => --R<B<G
 				h_inside <= bias_120 + quotient;
 			when "100" => --G<B<R
-				h_inside <= bias_360 + quotient;
+				h_inside <= bias_360 - quotient;
 			when "101" => --G<R<B
 				h_inside <= bias_240 + quotient;
 			when "110" => --B<G<R
 				h_inside <= quotient;
 			when "111" => --R=G=B
-				--也就是白色, 为了避免干扰0的值, 将其赋值为255
-				h_inside <= (others => '1');
-			when others => null;
+				--也就是白色
+				h_inside <= (others => '0');
+			when others => h_inside <= (others => '0');
 			end case;
-			
-			--S
+		end if;
+	end process;
+	
+	--计算S, V
+	process(rst_n, max, delta_255)
+	begin
+		if(rst_n = '0') then
+			s_inside <= (others => '0');
+			v_inside <= (others => '0');
+		else
+		--S
 			if(max = 0) then
 				s_inside <= (others => '0');
 			else
 				s_inside <= delta_255/max;
 			end if;
 		
-			--V
+		--V
 			v_inside <= max;
 		end if;
+	
 	end process;
 	
 end architecture bhv;

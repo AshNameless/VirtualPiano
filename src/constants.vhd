@@ -141,7 +141,7 @@ package constants is
 	constant ov7670_device_address : std_logic_vector(7 downto 0) := x"42";  --7670写地址x42
 	--寄存器宽度及需要配置的寄存器个数
 	constant ov7670_reg_dwidth : integer := 24;
-	constant ov7670_reg_num : integer := 19 + 32;
+	constant ov7670_reg_num : integer := 19 + 35;
 	--ov7670输出Y数据为8位
 	constant ov7670_output_width : integer := 8;
 	--图像分辨率
@@ -196,7 +196,7 @@ package constants is
 	
 	--条纹滤波器配置
 	--enable滤波器, 启自动增益补偿AGC, 自动白平衡AWB
-	constant ov7670_filteren_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"13" & x"e1";
+	constant ov7670_filteren_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"13" & x"e0";
 	--50hz 设置
 	constant ov7670_50hz1_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"9d" & x"4c";
 	constant ov7670_50hz2_config : std_logic_vector(ov7670_reg_dwidth - 1 downto 0) := ov7670_device_address & x"a5" & x"05";
@@ -307,7 +307,7 @@ package body constants is
 		when 18 => x <= ov7670_awbgain_config;
 		--自动黑电平校正相关配置
 		when 19 => x <= ov7670_device_address & x"b084";
-		when 20 => x <= ov7670_device_address & x"b10c";
+		when 20 => x <= ov7670_device_address & x"b100";
 		when 21 => x <= ov7670_device_address & x"b20e";
 		when 22 => x <= ov7670_device_address & x"b382";
 		when 23 => x <= ov7670_device_address & x"b80a";
@@ -338,10 +338,15 @@ package body constants is
 		when 46 => x <= ov7670_device_address & x"89e8";
 		--设置蓝色, 红色增益, 绿色增益
 		when 47 => x <= ov7670_device_address & x"0164";
-		when 48 => x <= ov7670_device_address & x"024f";
+		when 48 => x <= ov7670_device_address & x"0240";
 		when 49 => x <= ov7670_device_address & x"6a40";
 		--噪声抑制等级
 		when 50 => x <= ov7670_device_address & x"4cff";
+		--曝光时间控制. 设置较低效果较好AEC[15 to 0] = x"07"[5 to 0] & x"10"[7 to 0] & x"04"[1 to 0]
+		when 51 => x <= ov7670_device_address & x"0700";
+		when 52 => x <= ov7670_device_address & x"1040";
+		when 53 => x <= ov7670_device_address & x"0400";
+		
 		--awb控制参数 magic
 --		when 47 => x <= ov7670_device_address & x"4314";
 --		when 48 => x <= ov7670_device_address & x"44f0";

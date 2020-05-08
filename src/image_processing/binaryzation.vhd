@@ -20,11 +20,11 @@ generic(
 	s_dwidth : integer := 8;
 	v_dwidth : integer := 8;
 	--相关数据范围
-	h_min : integer := 0;
-	h_max : integer := 20;
-	s_min : integer := 0;
+	h_low : integer := 10;
+	h_high : integer := 340;
+	s_min : integer := 80;
 	s_max : integer := 255;
-	v_min : integer := 100;
+	v_min : integer := 70;
 	v_max : integer := 255
 );
 port(
@@ -62,7 +62,7 @@ begin
 	begin
 		if(rst_n = '0') then
 			is_wanted <= '0';
-		elsif(h >= h_min and h <= h_max and
+		elsif((h <= h_low or h >= h_high) and
 				s >= s_min and s <= s_max and
 				v >= v_min and v <= v_max
 		) then
