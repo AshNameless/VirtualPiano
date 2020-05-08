@@ -42,6 +42,15 @@ package constants is
 	
 	--将识别模块输出的24位信号进行转化，只保留第一个1，其余位全部置为0
 	function rawnote2note(ndata : std_logic_vector(notes_data_width - 1 downto 0)) return std_logic_vector;
+
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	-------------------------
 	--NCO
@@ -78,14 +87,27 @@ package constants is
 	--将音符信号转化为对应的NCO phase_step，用以控制NCO输出频率，暂未实现
 	procedure note2phase_step(signal ndata : in std_logic_vector(notes_data_width - 1 downto 0);
 		                       signal x : out std_logic_vector(NCO_phase_width - 1 downto 0));
-									  
 
 	
+	
+	
+	
+	
+	
+	
+	
+								  
 	-------------------------
 	--ADSR
 	-------------------------
 	constant ADSR_note_out_width : integer := 24;                      --板载24位音频模块，ASDR输出结果24位
 
+	
+	
+	
+	
+	
+	
 	
 	
 	
@@ -131,6 +153,14 @@ package constants is
 	--在wm8731初始化时, 将寄存器计数值转化为对应的寄存器数据
 	procedure codec_regcount2data(signal num : in integer range 0 to wm8731_reg_num; 
 								         signal x : out std_logic_vector(wm8731_reg_dwidth - 1 downto 0));
+
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	--若帧率相关有问题就去复制application note的值过来
@@ -210,7 +240,70 @@ package constants is
 	procedure camera_regcount2data(signal num : in integer range 0 to ov7670_reg_num; 
 								         signal x : out std_logic_vector(ov7670_reg_dwidth - 1 downto 0));
 
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	-------------------------
+	--predictor 琴键相关数据
+	-------------------------
+	--白键通过起始地址加上宽度来表示, 黑键则通过其中心位置和半宽度表示.
+	
+	--琴谱起始横纵坐标. 注意于摄像头所拍摄图像相反, 需要调整
+	constant key_original_x : integer := 0;
+	constant key_original_y : integer := 0;
+	
+	--琴键宽度信息
+	constant key_white_width : integer := 16; --白键宽度像素数
+	constant key_black_halfwidth : integer := 8; --黑键宽度像素数的一半
+	constant key_black_length : integer := 160;
+	
+	--黑白琴键分割行. 为琴键原点行数加上黑键长度
+	constant dividing_line : integer := key_original_x + key_black_length;
+	
+	--白键相关数据
+	constant key_white1_start : integer := key_original_y;
+	constant key_white2_start : integer := key_original_y + key_white_width;
+	constant key_white3_start : integer := key_original_y + 2 * key_white_width;
+	constant key_white4_start : integer := key_original_y + 3 * key_white_width;
+	constant key_white5_start : integer := key_original_y + 4 * key_white_width;
+	constant key_white6_start : integer := key_original_y + 5 * key_white_width;
+	constant key_white7_start : integer := key_original_y + 6 * key_white_width;
+	constant key_white8_start : integer := key_original_y + 7 * key_white_width;
+	constant key_white9_start : integer := key_original_y + 8 * key_white_width;
+	constant key_white10_start : integer := key_original_y + 9 * key_white_width;
+	constant key_white11_start : integer := key_original_y + 10 * key_white_width;
+	constant key_white12_start : integer := key_original_y + 11 * key_white_width;
+	constant key_white13_start : integer := key_original_y + 12 * key_white_width;
+	constant key_white14_start : integer := key_original_y + 13 * key_white_width;
+	
+	--黑键相关数据. 黑键记录其中心坐标, 黑键中心恰好是白键相交处
+	constant key_black1_center : integer := key_white2_start;
+	constant key_black2_center : integer := key_white3_start;
+	constant key_black3_center : integer := key_white5_start;
+	constant key_black4_center : integer := key_white6_start;
+	constant key_black5_center : integer := key_white7_start;
+	constant key_black6_center : integer := key_white9_start;
+	constant key_black7_center : integer := key_white10_start;
+	constant key_black8_center : integer := key_white12_start;
+	constant key_black9_center : integer := key_white13_start;
+	constant key_black10_center : integer := key_white14_start;
+	
+	--输入像素点横纵坐标, 然后将对应的按键位置位
+	procedure coordinates2keys(signal row : in integer range 0 to ov7670_image_height; 
+										signal column : in integer range 0 to ov7670_image_width;
+								      signal key : out std_logic_vector(notes_data_width - 1 downto 0));
 end package constants;
+
+
+-----------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------
+
 
 package body constants is
 	--Audio_Controller
@@ -229,7 +322,8 @@ package body constants is
 			end loop;
 			return x;
 	end function rawnote2note;
-	
+----------------------------------------------------------
+----------------------------------------------------------
 	--从音频信号得到NCO的phase_step用以控制频率
 	procedure note2phase_step(signal ndata : in std_logic_vector(notes_data_width - 1 downto 0);
 				                 signal x : out std_logic_vector(NCO_phase_width - 1 downto 0)) is
@@ -262,7 +356,8 @@ package body constants is
 			when others => x <= phase_note_0;
 			end case;
 	end procedure note2phase_step;
-	
+----------------------------------------------------------
+----------------------------------------------------------
 	--在wm8731初始化时, 将寄存器计数值转化为对应的寄存器数据
 	procedure codec_regcount2data(signal num : in integer range 0 to wm8731_reg_num; 
 								         signal x : out std_logic_vector(wm8731_reg_dwidth - 1 downto 0)) is
@@ -280,7 +375,8 @@ package body constants is
 		when others => x <= (others => '0');
 		end case;
 	end procedure codec_regcount2data;
-
+----------------------------------------------------------
+----------------------------------------------------------
 	--在摄像头初始化时, 将寄存器计数值转化为对应的寄存器数据
 	procedure camera_regcount2data(signal num : in integer range 0 to ov7670_reg_num; 
 								         signal x : out std_logic_vector(ov7670_reg_dwidth - 1 downto 0)) is
@@ -337,7 +433,7 @@ package body constants is
 		when 45 => x <= ov7670_device_address & x"88d7";
 		when 46 => x <= ov7670_device_address & x"89e8";
 		--设置蓝色, 红色增益, 绿色增益
-		when 47 => x <= ov7670_device_address & x"0164";
+		when 47 => x <= ov7670_device_address & x"0144";
 		when 48 => x <= ov7670_device_address & x"0240";
 		when 49 => x <= ov7670_device_address & x"6a40";
 		--噪声抑制等级
@@ -360,10 +456,62 @@ package body constants is
 --		when 56 => x <= ov7670_device_address & x"5c67";
 --		when 57 => x <= ov7670_device_address & x"5d49";
 --		when 58 => x <= ov7670_device_address & x"5e0e";
-		
 		when others => x<= (others => '1');
 		end case;
 	end procedure camera_regcount2data;
+----------------------------------------------------------
+----------------------------------------------------------
+	--输入像素点横纵坐标, 然后将对应的按键位置位
+	procedure coordinates2keys(signal row : in integer range 0 to ov7670_image_height; 
+										signal column : in integer range 0 to ov7670_image_width;
+								      signal key : out std_logic_vector(notes_data_width - 1 downto 0)) is
+	begin
+		--在分割线之下, 是白键
+		if(row >= dividing_line) then
+			if(column >= key_white1_start and column <= key_white1_start + key_white_width) then key(notes_data_width - 1) <= '1';
+			elsif(column >= key_white2_start and column <= key_white2_start + key_white_width) then key(notes_data_width - 3) <= '1';
+			elsif(column >= key_white3_start and column <= key_white3_start + key_white_width) then key(notes_data_width - 5) <= '1';
+			elsif(column >= key_white4_start and column <= key_white4_start + key_white_width) then key(notes_data_width - 6) <= '1';
+			elsif(column >= key_white5_start and column <= key_white5_start + key_white_width) then key(notes_data_width - 8) <= '1';
+			elsif(column >= key_white6_start and column <= key_white6_start + key_white_width) then key(notes_data_width - 10) <= '1';
+			elsif(column >= key_white7_start and column <= key_white7_start + key_white_width) then key(notes_data_width - 12) <= '1';
+			elsif(column >= key_white8_start and column <= key_white8_start + key_white_width) then key(notes_data_width - 13) <= '1';
+			elsif(column >= key_white9_start and column <= key_white9_start + key_white_width) then key(notes_data_width - 15) <= '1';
+			elsif(column >= key_white10_start and column <= key_white10_start + key_white_width) then key(notes_data_width - 17) <= '1';
+			elsif(column >= key_white11_start and column <= key_white11_start + key_white_width) then key(notes_data_width - 18) <= '1';
+			elsif(column >= key_white12_start and column <= key_white12_start + key_white_width) then key(notes_data_width - 20) <= '1';
+			elsif(column >= key_white13_start and column <= key_white13_start + key_white_width) then key(notes_data_width - 22) <= '1';
+			elsif(column >= key_white14_start and column <= key_white14_start + key_white_width) then key(notes_data_width - 24) <= '1';
+			else null;
+			end if;
+			
+		--分割线之上, 是黑键
+		else
+			if(column >= key_black1_center - key_black_halfwidth and column <= key_black1_center + key_black_halfwidth) then 
+				key(notes_data_width - 2) <= '1';
+			elsif(column >= key_black2_center - key_black_halfwidth and column <= key_black2_center + key_black_halfwidth) then 
+				key(notes_data_width - 4) <= '1';
+			elsif(column >= key_black3_center - key_black_halfwidth and column <= key_black3_center + key_black_halfwidth) then 
+				key(notes_data_width - 7) <= '1';
+			elsif(column >= key_black4_center - key_black_halfwidth and column <= key_black4_center + key_black_halfwidth) then 
+				key(notes_data_width - 9) <= '1';
+			elsif(column >= key_black5_center - key_black_halfwidth and column <= key_black5_center + key_black_halfwidth) then 
+				key(notes_data_width - 11) <= '1';
+			elsif(column >= key_black6_center - key_black_halfwidth and column <= key_black6_center + key_black_halfwidth) then 
+				key(notes_data_width - 14) <= '1';
+			elsif(column >= key_black7_center - key_black_halfwidth and column <= key_black7_center + key_black_halfwidth) then 
+				key(notes_data_width - 16) <= '1';
+			elsif(column >= key_black8_center - key_black_halfwidth and column <= key_black8_center + key_black_halfwidth) then 
+				key(notes_data_width - 19) <= '1';
+			elsif(column >= key_black9_center - key_black_halfwidth and column <= key_black9_center + key_black_halfwidth) then 
+				key(notes_data_width - 21) <= '1';
+			elsif(column >= key_black10_center - key_black_halfwidth and column <= key_black10_center + key_black_halfwidth) then 
+				key(notes_data_width - 23) <= '1';
+			else null;
+			end if;
+		end if;
+	end procedure coordinates2keys;
+
 
 end constants;
 
