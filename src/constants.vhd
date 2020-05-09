@@ -53,40 +53,66 @@ package constants is
 	
 	
 	-------------------------
-	--NCO
+	--my_nco
 	-------------------------
-	constant NCO_phase_width : integer := 25;        --输入到 NCO 的相位step参数
+	constant NCO_countnum_width : integer := 17;        --输入到 NCO 的相位step参数
 	constant NCO_wave_width : integer := 12 ;        --NCO 输出波形的位宽
-	--对应的25个NCO phase step
-	constant phase_note_0: std_logic_vector(NCO_phase_width - 1 downto 0) := (others => '0');
-	constant phase_note_1: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000000101010110111010110";
-	constant phase_note_2: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000000101101011010011110";
-	constant phase_note_3: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000000110000000111010011";
-	constant phase_note_4: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000000110010111110011010";
-	constant phase_note_5: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000000110110000000011010";
-	constant phase_note_6: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000000111001001101111011";
-	constant phase_note_7: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000000111100100111101011";
-	constant phase_note_8: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001000000001110010111";
-	constant phase_note_9: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001000100000010110010";
-	constant phase_note_10: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001001000000101101111";
-	constant phase_note_11: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001001100011000000101";
-	constant phase_note_12: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001010000111010101111";
-	constant phase_note_13: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001010101101110101100";
-	constant phase_note_14: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001011010110100111100";
-	constant phase_note_15: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001100000001110100110";
-	constant phase_note_16: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001100101111100110100";
-	constant phase_note_17: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001101100000000110011";
-	constant phase_note_18: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001110010011011110110";
-	constant phase_note_19: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001111001001111010110";
-	constant phase_note_20: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000010000000011100101111";
-	constant phase_note_21: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000010001000000101100100";
-	constant phase_note_22: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000010010000001011011110";
-	constant phase_note_23: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000010011000110000001011";
-	constant phase_note_24: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000010100001110101011111";
+	--对应的25个NCO计数器翻转值.
+	constant NCO_countnum_note_0: std_logic_vector(NCO_countnum_width - 1 downto 0) := (others => '0');
+	constant NCO_countnum_note_1: std_logic_vector(NCO_countnum_width - 1 downto 0) := "10111010101000100";
+	constant NCO_countnum_note_2: std_logic_vector(NCO_countnum_width - 1 downto 0) := "10110000001010001";
+	constant NCO_countnum_note_3: std_logic_vector(NCO_countnum_width - 1 downto 0) := "10100110010001011";
+	constant NCO_countnum_note_4: std_logic_vector(NCO_countnum_width - 1 downto 0) := "10011100111100001";
+	constant NCO_countnum_note_5: std_logic_vector(NCO_countnum_width - 1 downto 0) := "10010100001000011";
+	constant NCO_countnum_note_6: std_logic_vector(NCO_countnum_width - 1 downto 0) := "10001011110100010";
+	constant NCO_countnum_note_7: std_logic_vector(NCO_countnum_width - 1 downto 0) := "10000011111110001";
+	constant NCO_countnum_note_8: std_logic_vector(NCO_countnum_width - 1 downto 0) := "01111100100100000";
+	constant NCO_countnum_note_9: std_logic_vector(NCO_countnum_width - 1 downto 0) := "01110101100100101";
+	constant NCO_countnum_note_10: std_logic_vector(NCO_countnum_width - 1 downto 0) := "01101110111110010";
+	constant NCO_countnum_note_11: std_logic_vector(NCO_countnum_width - 1 downto 0) := "01101000101111101";
+	constant NCO_countnum_note_12: std_logic_vector(NCO_countnum_width - 1 downto 0) := "01100010110111011";
+	constant NCO_countnum_note_13: std_logic_vector(NCO_countnum_width - 1 downto 0) := "01011101010100010";
+	constant NCO_countnum_note_14: std_logic_vector(NCO_countnum_width - 1 downto 0) := "01011000000101001";
+	constant NCO_countnum_note_15: std_logic_vector(NCO_countnum_width - 1 downto 0) := "01010011001000110";
+	constant NCO_countnum_note_16: std_logic_vector(NCO_countnum_width - 1 downto 0) := "01001110011110001";
+	constant NCO_countnum_note_17: std_logic_vector(NCO_countnum_width - 1 downto 0) := "01001010000100010";
+	constant NCO_countnum_note_18: std_logic_vector(NCO_countnum_width - 1 downto 0) := "01000101111010001";
+	constant NCO_countnum_note_19: std_logic_vector(NCO_countnum_width - 1 downto 0) := "01000001111111000";
+	constant NCO_countnum_note_20: std_logic_vector(NCO_countnum_width - 1 downto 0) := "00111110010010000";
+	constant NCO_countnum_note_21: std_logic_vector(NCO_countnum_width - 1 downto 0) := "00111010110010010";
+	constant NCO_countnum_note_22: std_logic_vector(NCO_countnum_width - 1 downto 0) := "00110111011111001";
+	constant NCO_countnum_note_23: std_logic_vector(NCO_countnum_width - 1 downto 0) := "00110100010111111";
+	constant NCO_countnum_note_24: std_logic_vector(NCO_countnum_width - 1 downto 0) := "00110001011011110";
+	
+--	constant phase_note_0: std_logic_vector(NCO_phase_width - 1 downto 0) := (others => '0');
+--	constant phase_note_1: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000000101010110111010110";
+--	constant phase_note_2: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000000101101011010011110";
+--	constant phase_note_3: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000000110000000111010011";
+--	constant phase_note_4: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000000110010111110011010";
+--	constant phase_note_5: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000000110110000000011010";
+--	constant phase_note_6: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000000111001001101111011";
+--	constant phase_note_7: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000000111100100111101011";
+--	constant phase_note_8: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001000000001110010111";
+--	constant phase_note_9: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001000100000010110010";
+--	constant phase_note_10: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001001000000101101111";
+--	constant phase_note_11: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001001100011000000101";
+--	constant phase_note_12: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001010000111010101111";
+--	constant phase_note_13: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001010101101110101100";
+--	constant phase_note_14: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001011010110100111100";
+--	constant phase_note_15: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001100000001110100110";
+--	constant phase_note_16: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001100101111100110100";
+--	constant phase_note_17: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001101100000000110011";
+--	constant phase_note_18: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001110010011011110110";
+--	constant phase_note_19: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001111001001111010110";
+--	constant phase_note_20: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000010000000011100101111";
+--	constant phase_note_21: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000010001000000101100100";
+--	constant phase_note_22: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000010010000001011011110";
+--	constant phase_note_23: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000010011000110000001011";
+--	constant phase_note_24: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000010100001110101011111";
 	
 	--将音符信号转化为对应的NCO phase_step，用以控制NCO输出频率，暂未实现
-	procedure note2phase_step(signal ndata : in std_logic_vector(notes_data_width - 1 downto 0);
-		                       signal x : out std_logic_vector(NCO_phase_width - 1 downto 0));
+	procedure note2NCOcountnum(signal ndata : in std_logic_vector(notes_data_width - 1 downto 0);
+		                       signal x : out std_logic_vector(NCO_countnum_width - 1 downto 0));
 
 	
 	
@@ -117,14 +143,14 @@ package constants is
 	--I2C对WM8731进行寄存器配置，8731从器件地址+寄存器地址+寄存器数据构成24位数据，每个寄存器进行一次I2C传输。
 	
 	-------------wm8731器件地址,最后一位指示读写r/w'------------
-	constant wm8731_device_address : std_logic_vector(7 downto 0) := "00110100";
+	constant wm8731_device_address : std_logic_vector(7 downto 0) := x"34";
 	constant wm8731_reg_dwidth : integer := 24;
 	constant wm8731_reg_num : integer := 9;
-	--以下为各配置寄存器的地址及数据，拼接为两个字节。由于只需要输出,部分寄存器无需配置保存默认值即可。
+	--以下为各配置寄存器的地址及数据，拼接为两个字节. 由于只需要输出,部分寄存器无需配置保存默认值即可。
 	
 	-------------------耳机输出---------------------
-	constant wm8731_left_headphone_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000010" & "011111001";
-	constant wm8731_right_headphone_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000011" & "011111001";
+	constant wm8731_left_headphone_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000010" & "010111111";
+	constant wm8731_right_headphone_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000011" & "010111111";
 	
 	--------------模拟音频路径控制寄存器------------------
 	constant wm8731_analogue_path_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000100" & "000010000"; 
@@ -324,38 +350,38 @@ package body constants is
 	end function rawnote2note;
 ----------------------------------------------------------
 ----------------------------------------------------------
-	--从音频信号得到NCO的phase_step用以控制频率
-	procedure note2phase_step(signal ndata : in std_logic_vector(notes_data_width - 1 downto 0);
-				                 signal x : out std_logic_vector(NCO_phase_width - 1 downto 0)) is
+	--从音频信号得到NCO的计数值用以控制频率
+	procedure note2NCOcountnum(signal ndata : in std_logic_vector(notes_data_width - 1 downto 0);
+		                       signal x : out std_logic_vector(NCO_countnum_width - 1 downto 0)) is
 		begin
 			case ndata is
-			when note_1 => x <= phase_note_1;
-			when note_2 => x <= phase_note_2;
-			when note_3 => x <= phase_note_3;
-			when note_4 => x <= phase_note_4;
-			when note_5 => x <= phase_note_5;
-			when note_6 => x <= phase_note_6;
-			when note_7 => x <= phase_note_7;
-			when note_8 => x <= phase_note_8;
-			when note_9 => x <= phase_note_9;
-			when note_10 => x <= phase_note_10;
-			when note_11 => x <= phase_note_11;
-			when note_12 => x <= phase_note_12;
-			when note_13 => x <= phase_note_13;
-			when note_14 => x <= phase_note_14;
-			when note_15 => x <= phase_note_15;
-			when note_16 => x <= phase_note_16;
-			when note_17 => x <= phase_note_17;
-			when note_18 => x <= phase_note_18;
-			when note_19 => x <= phase_note_19;
-			when note_20 => x <= phase_note_20;
-			when note_21 => x <= phase_note_21;
-			when note_22 => x <= phase_note_22;
-			when note_23 => x <= phase_note_23;
-			when note_24 => x <= phase_note_24;
-			when others => x <= phase_note_0;
+			when note_1 =>	x <= NCO_countnum_note_1;
+			when note_2 =>	x <= NCO_countnum_note_2;
+			when note_3 =>	x <= NCO_countnum_note_3;
+			when note_4 =>	x <= NCO_countnum_note_4;
+			when note_5 =>	x <= NCO_countnum_note_5;
+			when note_6 =>	x <= NCO_countnum_note_6;
+			when note_7 =>	x <= NCO_countnum_note_7;
+			when note_8 =>	x <= NCO_countnum_note_8;
+			when note_9 =>	x <= NCO_countnum_note_9;
+			when note_10 => x <= NCO_countnum_note_10;
+			when note_11 => x <= NCO_countnum_note_11;
+			when note_12 => x <= NCO_countnum_note_12;
+			when note_13 => x <= NCO_countnum_note_13;
+			when note_14 => x <= NCO_countnum_note_14;
+			when note_15 => x <= NCO_countnum_note_15;
+			when note_16 => x <= NCO_countnum_note_16;
+			when note_17 => x <= NCO_countnum_note_17;
+			when note_18 => x <= NCO_countnum_note_18;
+			when note_19 => x <= NCO_countnum_note_19;
+			when note_20 => x <= NCO_countnum_note_20;
+			when note_21 => x <= NCO_countnum_note_21;
+			when note_22 => x <= NCO_countnum_note_22;
+			when note_23 => x <= NCO_countnum_note_23;
+			when note_24 => x <= NCO_countnum_note_24;
+			when others => x <= (others => '0');
 			end case;
-	end procedure note2phase_step;
+	end procedure note2NCOcountnum;
 ----------------------------------------------------------
 ----------------------------------------------------------
 	--在wm8731初始化时, 将寄存器计数值转化为对应的寄存器数据
@@ -372,7 +398,7 @@ package body constants is
 		when 6 => x <= wm8731_digital_interface_config;
 		when 7 => x <= wm8731_sampling_config;
 		when 8 => x <= wm8731_active_config;
-		when others => x <= (others => '0');
+		when others => x <= (others => '1');
 		end case;
 	end procedure codec_regcount2data;
 ----------------------------------------------------------

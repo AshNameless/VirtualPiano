@@ -4,8 +4,7 @@
 --
 -- 功能: 接收从识别模块输出的24位音符信息, 根据此产生各种控制信号
 --
--- 描述: 只保留24位信息中最高位的1, 只保留一个音符. 再将转换后的单音符信息
---       作为选择器的输入, 选择对应的NCO相位步长, 并将其输出. 同时产生note_on
+-- 描述: 只保留24位信息中最高位的1, 只保留一个音符. 产生note_on
 --       note_change等信号. 通过对比当前音符和上一音符来判断note_change是否该
 --       置位, 由当前音符是否变为0来判断是否松键.
 -------------------------------------------------------------------------
@@ -18,7 +17,7 @@ use work.constants.all;
 entity Audio_Controller is
 generic(
 	input_data_width : integer := notes_data_width;
-	output_data_width : integer := NCO_phase_width
+	output_data_width : integer := NCO_countnum_width
 );
 port(
 	--输入
@@ -26,8 +25,7 @@ port(
 	clk_50m : in std_logic;
 	notes_data_in : in std_logic_vector(input_data_width - 1 downto 0);   --识别模块输出的音符信息
 	--输出
-	NCO_phase_step : out std_logic_vector(output_data_width - 1 downto 0);  --调节NCO输出信号频率
-	NCO_clk_en : out std_logic;                                           --NCO时钟使能
+	nco_countnum : out std_logic_vector(NCO_countnum_width - 1 downto 0);
 	note_on : out std_logic;                                              --表示音符是否按下，输出到ADSR
 	note_change : out std_logic                                           --表示音符是否有变动，输出到ADSR
 );
@@ -107,27 +105,23 @@ begin
 	begin
 		case cur_state is
 		when idle =>
-			NCO_phase_step <= (others => '0');
-			NCO_clk_en <= '0';
+			nco_countnum <= (others => '0');
 			note_on <= '0';
 			note_change <= '0';
 		
-		--procedure详见subpros
+		--procedure详见constants
 		when pressed =>
-			note2phase_step(cur_note, NCO_phase_step);
-			NCO_clk_en <= '1';
+			note2NCOcountnum(cur_note, nco_countnum);
 			note_on <= '1';
 			note_change <= '0';
 			
 		when changed =>
-			note2phase_step(cur_note, NCO_phase_step);
-			NCO_clk_en <= '1';
+			note2NCOcountnum(cur_note, nco_countnum);
 			note_on <= '1';
 			note_change <= '1';
 		
 		when others =>
-			NCO_phase_step <= (others => '0');
-			NCO_clk_en <= '0';
+			nco_countnum <= (others => '0');
 			note_on <= '0';
 			note_change <= '0';
 		end case;

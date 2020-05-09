@@ -17,9 +17,9 @@
 -- suit user's needs .Comments are provided in each section to help the user  
 -- fill out necessary details.                                                
 -- ***************************************************************************
--- Generated on "05/09/2020 12:50:41"
+-- Generated on "05/08/2020 20:31:54"
                                                             
--- Vhdl Test Bench template for design  :  Audio_Controller
+-- Vhdl Test Bench template for design  :  predictor
 -- 
 -- Simulation tool : ModelSim (VHDL)
 -- 
@@ -27,54 +27,48 @@
 LIBRARY ieee;                                               
 USE ieee.std_logic_1164.all;                                
 
-ENTITY Audio_Controller_vhd_tst IS
-END Audio_Controller_vhd_tst;
-ARCHITECTURE Audio_Controller_arch OF Audio_Controller_vhd_tst IS
+ENTITY predictor_vhd_tst IS
+END predictor_vhd_tst;
+ARCHITECTURE predictor_arch OF predictor_vhd_tst IS
 -- constants                                                 
 -- signals                                                   
-SIGNAL clk_50m : STD_LOGIC := '0';
-SIGNAL nco_countnum : STD_LOGIC_VECTOR(16 DOWNTO 0);
-SIGNAL note_change : STD_LOGIC;
-SIGNAL note_on : STD_LOGIC;
-SIGNAL notes_data_in : STD_LOGIC_VECTOR(23 DOWNTO 0);
+SIGNAL fsyn : STD_LOGIC;
+SIGNAL key_statuses : STD_LOGIC_VECTOR(23 DOWNTO 0);
+SIGNAL pclk : STD_LOGIC := '0';
+SIGNAL pixel : STD_LOGIC;
 SIGNAL rst_n : STD_LOGIC;
-COMPONENT Audio_Controller
+COMPONENT predictor
 	PORT (
-	clk_50m : IN STD_LOGIC;
-	nco_countnum : OUT STD_LOGIC_VECTOR(16 DOWNTO 0);
-	note_change : OUT STD_LOGIC;
-	note_on : OUT STD_LOGIC;
-	notes_data_in : IN STD_LOGIC_VECTOR(23 DOWNTO 0);
+	fsyn : IN STD_LOGIC;
+	key_statuses : OUT STD_LOGIC_VECTOR(23 DOWNTO 0);
+	pclk : IN STD_LOGIC;
+	pixel : IN STD_LOGIC;
 	rst_n : IN STD_LOGIC
 	);
 END COMPONENT;
 BEGIN
-	i1 : Audio_Controller
+	i1 : predictor
 	PORT MAP (
 -- list connections between master ports and signals
-	clk_50m => clk_50m,
-	nco_countnum => nco_countnum,
-	note_change => note_change,
-	note_on => note_on,
-	notes_data_in => notes_data_in,
+	fsyn => fsyn,
+	key_statuses => key_statuses,
+	pclk => pclk,
+	pixel => pixel,
 	rst_n => rst_n
 	);
 init : PROCESS                                               
 -- variable declarations                                     
 BEGIN                                                        
 rst_n <= '0';
-notes_data_in <= (others => '0');
-wait for 50 ns;
-rst_n <= '1';
-notes_data_in <= "100000001100000000100100";    
-wait for 5 ns;
-notes_data_in <= "100100000000000000100100";
-wait for 40 ns;
-notes_data_in <= "100000000000000000000000";
-wait for 5 ns;
-notes_data_in <= "000000001100000000100100";
+pixel <= '0';
+fsyn <= '0';
 wait for 10 ns;
-notes_data_in <= "000000001100000000100100";                                  
+rst_n <= '1';
+wait for 150 ns;
+fsyn <= '1';
+pixel <= '1';
+wait for 76800 * 160 ns;
+fsyn <= '0';
 WAIT;                                                       
 END PROCESS init;                                           
 always : PROCESS                                              
@@ -82,7 +76,7 @@ always : PROCESS
 -- (        )                                                 
 -- variable declarations                                      
 BEGIN                                                         
-wait for 10 ns;
-clk_50m <= not clk_50m;                                                  
+wait for 80 ns;
+pclk <= not pclk;                                           
 END PROCESS always;                                          
-END Audio_Controller_arch;
+END predictor_arch;

@@ -39,7 +39,7 @@ architecture bhv of Left_justified is
 	signal mclk : std_logic := '0';
 	signal bclk : std_logic := '0';
 	signal lrclk : std_logic := '0';
-	--因为left_justified输出方式中, 24位数据传输完毕后需要跟3个0, 所以此处data为27wei, data=note_data & 000.
+	--因为left_justified输出方式中, 24位数据传输完毕后需要跟3个0, 所以此处data为27位, data=note_data & 000.
 	signal data : std_logic_vector(input_note_data_width + 2 downto 0) := (others => '0');
 	
 	--输入50mhz,MCLK期望为12.288mhz,计数2翻转一次(半个周期),实际得到的MCLK为12.5mhz
@@ -95,7 +95,7 @@ begin
 		end if;
 	end process;
 	
-	--产生LRCLK信号
+	--产生LRCLK信号, 并在下降沿时获取数据
 	lrclk_pro : process(rst_n, bclk)
 	begin
 		if(rst_n = '0') then

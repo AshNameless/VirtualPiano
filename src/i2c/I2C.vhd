@@ -40,7 +40,7 @@ architecture bhv of I2C is
 	--i2c输出scl设定为100khz,该信号由状态机控制，所以其周期是状态机两倍，故状态机驱动时钟应为200khz
 	--用输入50mhz分频到200khz,则需要计数250个时钟, 则每125个时钟翻转一次
 	signal clk_200khz : std_logic := '0';
-	signal clk_200khz_threshold : integer := 124;
+	constant clk_200khz_threshold : integer := 124;
 	signal clk_count : integer range 0 to clk_200khz_threshold := 0;
 	
 	--定义状态

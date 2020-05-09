@@ -48,6 +48,7 @@ architecture bhv of WM8731_controller is
 	
 	--共配置9个寄存器
 	signal reg_count : integer range 0 to register_num := 0;
+	signal reg_count_impulse : std_logic := '0';
 	
 	--定义状态
 	type state is (idle, initilization_0, initilization_1, transmission, err);
@@ -119,7 +120,11 @@ begin
 		next_state <= cur_state;
 		case cur_state is
 		when idle =>
-			next_state <= initilization_0;
+			if(error = '1') then
+				next_state <= idle;
+			else
+				next_state <= initilization_0;
+			end if;
 		
 		when initilization_0 =>
 			if(error = '1') then
@@ -135,7 +140,7 @@ begin
 				next_state <= err;
 			elsif(done = '0') then
 				next_state <= initilization_1;
-			elsif(reg_count = register_num) then
+			elsif(reg_count = register_num - 1) then
 				next_state <= transmission;
 			else
 				next_state <= initilization_0;
@@ -144,24 +149,29 @@ begin
 		when transmission =>
 			next_state <= transmission;
 		
+		--i2c出错后需要发送结束信号, 结束信号完成后有done信号, 因此需要等到done为高时才表示关闭本次传输
 		when err =>
-			next_state <= idle;
+			if(done = '1') then
+				next_state <= idle;
+			else
+				next_state <= err;
+			end if;
 		
 		when others => null;
 		end case;
 	end process;
 	
 	--状态机输出控制
-	process(cur_state)
+	process(cur_state, reg_count)
 	begin
 		case cur_state is
 		when idle =>
 			rst_left <= '0';
-			
 			rst_i2c <= '0';
+			
 			i2c_data <= (others => '0');
 			send <= '0';
-			reg_count <= 0;
+			reg_count_impulse <= '0';
 		
 		--i2c_rst置位,准备i2c数据
 		when initilization_0 =>
@@ -171,18 +181,15 @@ begin
 			send <= '0';
 			--procedure详见subpros
 			codec_regcount2data(reg_count, i2c_data);
-			
-			if(reg_count < register_num) then
-				reg_count <= reg_count + 1;
-			else
-				reg_count <= 0;
-			end if;
+			reg_count_impulse <= '0';
 		
 		when initilization_1 =>
 			rst_left <= '0';
 			
 			rst_i2c <= '1';
 			send <= '1';
+			codec_regcount2data(reg_count, i2c_data);
+			reg_count_impulse <= '1';
 		
 		when transmission =>
 			rst_left <= '1';
@@ -190,17 +197,33 @@ begin
 			rst_i2c <= '0';
 			send <= '0';
 			i2c_data <= (others => '0');
+			reg_count_impulse <= '0';
 		
 		when err =>
 			rst_left <= '0';
 			
-			rst_i2c <= '0';
+			rst_i2c <= '1';
 			i2c_data <= (others => '0');
+			reg_count_impulse <= '0';
 			send <= '0';
 		when others => null;
 		end case;
-		
 	end process;
+	
+	--reg_count计数进程
+	process(cur_state, reg_count_impulse) 
+	begin
+		if(cur_state = idle) then
+			reg_count <= 0;
+		elsif(reg_count_impulse'event and reg_count_impulse = '0') then
+			if(reg_count < register_num) then
+				reg_count <= reg_count + 1;
+			else
+				reg_count <= 0;
+			end if;
+		end if;
+	end process;
+	
 end architecture bhv;
 
 
