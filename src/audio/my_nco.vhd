@@ -34,15 +34,32 @@ architecture bhv of my_nco is
 	signal count_threshold : integer := 0;
 	signal wave_count : integer := 0;
 	signal wave_flag : std_logic := '0';
+	
+	--由于检测到无按键的时候, ASDR还有release阶段. 如果直接把计数翻转值置0的话, 将不再有
+	--波形输出. 因此内置一个计数器值, 在有按下时等于countnum, 没按下时保持之前的值.因为
+	--ADSR在idle态增益为0, 因此即便有波形也不会产生声音
+	signal countnum_inside : std_logic_vector(NCO_countnum_width - 1 downto 0) := (others => '0');
 
 begin
-	--计数翻转值改变
+	
 	process(rst_n, countnum)
+	begin
+		if(rst_n = '0') then
+			countnum_inside <= (others => '0');
+		elsif(unsigned(countnum) = 0) then
+			countnum_inside <= countnum_inside;
+		else
+			countnum_inside <= countnum;
+		end if;
+	end process;
+	
+	--计数翻转值改变
+	process(rst_n, countnum_inside)
 	begin
 		if(rst_n = '0') then
 			count_threshold <= 0;
 		else
-			count_threshold <= to_integer(unsigned(countnum));
+			count_threshold <= to_integer(unsigned(countnum_inside));
 		end if;
 	end process;
 	

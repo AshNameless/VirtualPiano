@@ -149,8 +149,8 @@ package constants is
 	--以下为各配置寄存器的地址及数据，拼接为两个字节. 由于只需要输出,部分寄存器无需配置保存默认值即可。
 	
 	-------------------耳机输出---------------------
-	constant wm8731_left_headphone_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000010" & "010111111";
-	constant wm8731_right_headphone_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000011" & "010111111";
+	constant wm8731_left_headphone_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000010" & "011110011";
+	constant wm8731_right_headphone_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000011" & "011100111";
 	
 	--------------模拟音频路径控制寄存器------------------
 	constant wm8731_analogue_path_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000100" & "000010000"; 
@@ -285,9 +285,9 @@ package constants is
 	constant key_original_y : integer := 0;
 	
 	--琴键宽度信息
-	constant key_white_width : integer := 16; --白键宽度像素数
-	constant key_black_halfwidth : integer := 8; --黑键宽度像素数的一半
-	constant key_black_length : integer := 160;
+	constant key_white_width : integer := 22; --白键宽度像素数
+	constant key_black_halfwidth : integer := 10; --黑键宽度像素数的一半
+	constant key_black_length : integer := 80;
 	
 	--黑白琴键分割行. 为琴键原点行数加上黑键长度
 	constant dividing_line : integer := key_original_x + key_black_length;
