@@ -40,8 +40,9 @@ package constants is
 	constant note_23 : std_logic_vector(notes_data_width - 1 downto 0) := (1 => '1', others => '0');
 	constant note_24 : std_logic_vector(notes_data_width - 1 downto 0) := (0 => '1', others => '0');
 	
-	--将识别模块输出的24位信号进行转化，只保留第一个1，其余位全部置为0
-	function rawnote2note(ndata : std_logic_vector(notes_data_width - 1 downto 0)) return std_logic_vector;
+	--将输入音符信号转换成特定的第几个被按下的音符. 例如num_of_pkey为4, 则监测第四个被按下的音符
+	function rawnote2note(ndata : std_logic_vector(notes_data_width - 1 downto 0);
+								 num_of_pkey : integer) return std_logic_vector;
 
 	
 	
@@ -333,15 +334,20 @@ end package constants;
 
 package body constants is
 	--Audio_Controller
-	--将输入音符信号转换成只其最低音信号。如识别出按下了40、41号键，则转换为只按下了40号键，方便前期系统搭建，后期可能会有所修改
-	function rawnote2note(ndata : std_logic_vector(notes_data_width - 1 downto 0))
-	return std_logic_vector is
+	--将输入音符信号转换成特定的第几个被按下的音符. 例如num_of_pkey为4, 则监测第四个被按下的音符
+	function rawnote2note(ndata : std_logic_vector(notes_data_width - 1 downto 0);
+								 num_of_pkey : integer) return std_logic_vector is
+		variable j : integer range 1 to 24 := 1;
 		variable x : std_logic_vector(23 downto 0) := (others => '0');
 		begin
 			for i in 23 downto 0 loop
-				if ndata(i) = '1' then
-					x := (i => '1', others => '0');
-					exit;
+				if(ndata(i) = '1') then
+					if(j = num_of_pkey) then
+						x := (i => '1', others => '0');
+						exit;
+					else
+						j := j + 1;
+					end if;
 				else
 					x(i) := '0';
 				end if;

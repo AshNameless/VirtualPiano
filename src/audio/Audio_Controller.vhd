@@ -2,9 +2,9 @@
 -------------------------------------------------------------------------
 --Audio_Controller
 --
--- 功能: 接收从识别模块输出的24位音符信息, 根据此产生各种控制信号
+-- 功能: 接收从识别模块输出的24位音符信息, 根据此产生控制信号.
 --
--- 描述: 只保留24位信息中最高位的1, 只保留一个音符. 产生note_on
+-- 描述: 只保留24位信息中第nbxth_of_pkey个1, 也就只保留一个音符. 产生note_on
 --       note_change等信号. 通过对比当前音符和上一音符来判断note_change是否该
 --       置位, 由当前音符是否变为0来判断是否松键.
 -------------------------------------------------------------------------
@@ -17,7 +17,8 @@ use work.constants.all;
 entity Audio_Controller is
 generic(
 	input_data_width : integer := notes_data_width;
-	output_data_width : integer := NCO_countnum_width
+	output_data_width : integer := NCO_countnum_width;
+	nbxth_of_pkey : integer := 3
 );
 port(
 	--输入
@@ -41,7 +42,7 @@ architecture bhv of Audio_Controller is
 	
 begin
 	--输入信号转换
-	cur_note <= rawnote2note(notes_data_in);
+	cur_note <= rawnote2note(notes_data_in, nbxth_of_pkey);
 	--复位时上一音符置0，否则在上升沿对输入采样
 	process(rst_n, clk_50m)
 	begin

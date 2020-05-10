@@ -38,33 +38,26 @@ architecture bhv of my_nco is
 	--由于检测到无按键的时候, ASDR还有release阶段. 如果直接把计数翻转值置0的话, 将不再有
 	--波形输出. 因此内置一个计数器值, 在有按下时等于countnum, 没按下时保持之前的值.因为
 	--ADSR在idle态增益为0, 因此即便有波形也不会产生声音
-	signal countnum_inside : std_logic_vector(NCO_countnum_width - 1 downto 0) := (others => '0');
+	signal countnum_inside : unsigned(NCO_countnum_width - 1 downto 0) := (others => '0');
 
 begin
+	countnum_inside <= unsigned(countnum);
 	
-	process(rst_n, countnum)
-	begin
-		if(rst_n = '0') then
-			countnum_inside <= (others => '0');
-		elsif(unsigned(countnum) = 0) then
-			countnum_inside <= countnum_inside;
-		else
-			countnum_inside <= countnum;
-		end if;
-	end process;
-	
-	--计数翻转值改变
-	process(rst_n, countnum_inside)
+	process(rst_n, clk_50m)
 	begin
 		if(rst_n = '0') then
 			count_threshold <= 0;
-		else
-			count_threshold <= to_integer(unsigned(countnum_inside));
+		elsif(clk_50m'event and clk_50m = '0') then
+			if(countnum_inside = 0) then
+				count_threshold <= count_threshold;
+			else
+				count_threshold <= to_integer(countnum_inside);
+			end if;
 		end if;
 	end process;
 	
 	--计数进程
-	process(rst_n, clk_50m, count_threshold)
+	process(rst_n, clk_50m)
 	begin
 		if(rst_n = '0') then
 			wave_count <= 0;
@@ -91,7 +84,7 @@ begin
 			nco_waveout <= (NCO_wave_width - 1 => '0', others => '1');
 		end if;
 	end process;
-
+	
 end architecture bhv;
 
 
