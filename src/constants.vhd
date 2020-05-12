@@ -68,6 +68,7 @@ package constants is
 	-------------------------
 	constant NCO_countnum_width : integer := 17;        --输入到的计数值
 	constant NCO_wave_width : integer := 6;        --NCO 输出波形的位宽
+	constant NCO_countnum_max : integer := 95556;  --计数的最大值, 在my_nco中对计数器做一个范围限制, 综合可以小一些位宽
 	--对应的25个NCO计数器翻转值.
 	constant NCO_countnum_note_0: std_logic_vector(NCO_countnum_width - 1 downto 0) := (others => '0');
 	constant NCO_countnum_note_1: std_logic_vector(NCO_countnum_width - 1 downto 0) := "10111010101000100";

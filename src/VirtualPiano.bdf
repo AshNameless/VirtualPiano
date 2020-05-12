@@ -1609,80 +1609,6 @@ applicable agreement for further details.
 	(annotation_block (parameter)(rect 1544 -1608 1744 -1536))
 )
 (symbol
-	(rect 3608 -1664 4000 -1552)
-	(text "my_filter" (rect 5 0 49 12)(font "Arial" ))
-	(text "inst1" (rect 8 96 31 108)(font "Arial" ))
-	(port
-		(pt 0 32)
-		(input)
-		(text "rst_n" (rect 0 0 24 12)(font "Arial" ))
-		(text "rst_n" (rect 21 27 45 39)(font "Arial" ))
-		(line (pt 0 32)(pt 16 32))
-	)
-	(port
-		(pt 0 48)
-		(input)
-		(text "clk_50m" (rect 0 0 41 12)(font "Arial" ))
-		(text "clk_50m" (rect 21 43 62 55)(font "Arial" ))
-		(line (pt 0 48)(pt 16 48))
-	)
-	(port
-		(pt 0 64)
-		(input)
-		(text "nco_wave_in[input_wave_width-1..0]" (rect 0 0 179 12)(font "Arial" ))
-		(text "nco_wave_in[input_wave_width-1..0]" (rect 21 59 200 71)(font "Arial" ))
-		(line (pt 0 64)(pt 16 64)(line_width 3))
-	)
-	(port
-		(pt 0 80)
-		(input)
-		(text "filter_num_in[filter_num_width-1..0]" (rect 0 0 173 12)(font "Arial" ))
-		(text "filter_num_in[filter_num_width-1..0]" (rect 21 75 194 87)(font "Arial" ))
-		(line (pt 0 80)(pt 16 80)(line_width 3))
-	)
-	(port
-		(pt 392 32)
-		(output)
-		(text "filtered_wave[output_data_width-1..0]" (rect 0 0 184 12)(font "Arial" ))
-		(text "filtered_wave[output_data_width-1..0]" (rect 216 27 400 39)(font "Arial" ))
-		(line (pt 392 32)(pt 376 32)(line_width 3))
-	)
-	(parameter
-		"filter_num_width"
-		"5"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(parameter
-		"input_wave_width"
-		"6"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(parameter
-		"output_data_width"
-		"18"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(parameter
-		"coeff_width"
-		"11"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(parameter
-		"filter_order"
-		"10"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(parameter
-		"count_threshold"
-		"2499"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(drawing
-		(rectangle (rect 16 16 376 96))
-	)
-	(annotation_block (parameter)(rect 3608 -1776 3840 -1672))
-)
-(symbol
 	(rect 2456 -1688 2848 -1576)
 	(text "Audio_Controller" (rect 5 0 85 12)(font "Arial" ))
 	(text "inst17" (rect 8 96 37 108)(font "Arial" ))
@@ -1829,6 +1755,80 @@ applicable agreement for further details.
 	(annotation_block (parameter)(rect 4416 -1920 4648 -1872))
 )
 (symbol
+	(rect 3608 -1664 4000 -1552)
+	(text "my_filter" (rect 5 0 49 12)(font "Arial" ))
+	(text "inst1" (rect 8 96 31 108)(font "Arial" ))
+	(port
+		(pt 0 32)
+		(input)
+		(text "rst_n" (rect 0 0 24 12)(font "Arial" ))
+		(text "rst_n" (rect 21 27 45 39)(font "Arial" ))
+		(line (pt 0 32)(pt 16 32))
+	)
+	(port
+		(pt 0 48)
+		(input)
+		(text "clk_50m" (rect 0 0 41 12)(font "Arial" ))
+		(text "clk_50m" (rect 21 43 62 55)(font "Arial" ))
+		(line (pt 0 48)(pt 16 48))
+	)
+	(port
+		(pt 0 64)
+		(input)
+		(text "nco_wave_in[input_wave_width-1..0]" (rect 0 0 179 12)(font "Arial" ))
+		(text "nco_wave_in[input_wave_width-1..0]" (rect 21 59 200 71)(font "Arial" ))
+		(line (pt 0 64)(pt 16 64)(line_width 3))
+	)
+	(port
+		(pt 0 80)
+		(input)
+		(text "filter_num_in[filter_num_width-1..0]" (rect 0 0 173 12)(font "Arial" ))
+		(text "filter_num_in[filter_num_width-1..0]" (rect 21 75 194 87)(font "Arial" ))
+		(line (pt 0 80)(pt 16 80)(line_width 3))
+	)
+	(port
+		(pt 392 32)
+		(output)
+		(text "filtered_wave[output_data_width-1..0]" (rect 0 0 184 12)(font "Arial" ))
+		(text "filtered_wave[output_data_width-1..0]" (rect 216 27 400 39)(font "Arial" ))
+		(line (pt 392 32)(pt 376 32)(line_width 3))
+	)
+	(parameter
+		"filter_num_width"
+		"5"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"input_wave_width"
+		"6"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"output_data_width"
+		"18"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"coeff_width"
+		"12"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"filter_order"
+		"20"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"count_threshold"
+		"2499"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(drawing
+		(rectangle (rect 16 16 376 96))
+	)
+	(annotation_block (parameter)(rect 3608 -1776 3840 -1672))
+)
+(symbol
 	(rect 3040 -1632 3416 -1520)
 	(text "my_nco" (rect 5 0 45 12)(font "Arial" ))
 	(text "inst" (rect 8 96 25 108)(font "Arial" ))
@@ -1870,10 +1870,15 @@ applicable agreement for further details.
 		"6"
 		""
 		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"countnum_max"
+		"95556"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
 	(drawing
 		(rectangle (rect 16 16 360 96))
 	)
-	(annotation_block (parameter)(rect 3040 -1680 3272 -1632))
+	(annotation_block (parameter)(rect 3040 -1696 3272 -1640))
 )
 (symbol
 	(rect 4976 -1528 5280 -1384)
@@ -2866,22 +2871,6 @@ applicable agreement for further details.
 	(bus)
 )
 (connector
-	(pt 3544 -1632)
-	(pt 3608 -1632)
-)
-(connector
-	(pt 3544 -1480)
-	(pt 3544 -1632)
-)
-(connector
-	(pt 3568 -1616)
-	(pt 3608 -1616)
-)
-(connector
-	(pt 3568 -1496)
-	(pt 3568 -1616)
-)
-(connector
 	(pt 3008 -1584)
 	(pt 3040 -1584)
 )
@@ -2912,36 +2901,8 @@ applicable agreement for further details.
 	(pt 3008 -1496)
 )
 (connector
-	(pt 3008 -1496)
-	(pt 3568 -1496)
-)
-(connector
 	(pt 2272 -1480)
 	(pt 2976 -1480)
-)
-(connector
-	(pt 2976 -1480)
-	(pt 3544 -1480)
-)
-(connector
-	(pt 3416 -1600)
-	(pt 3608 -1600)
-	(bus)
-)
-(connector
-	(pt 3608 -1584)
-	(pt 3480 -1584)
-	(bus)
-)
-(connector
-	(pt 3480 -1584)
-	(pt 3480 -1712)
-	(bus)
-)
-(connector
-	(pt 4000 -1632)
-	(pt 4392 -1632)
-	(bus)
 )
 (connector
 	(pt 4320 -1816)
@@ -2986,9 +2947,53 @@ applicable agreement for further details.
 	(pt 2904 -1784)
 )
 (connector
-	(pt 4392 -1632)
-	(pt 4392 -1768)
+	(pt 3544 -1632)
+	(pt 3608 -1632)
+)
+(connector
+	(pt 3544 -1480)
+	(pt 3544 -1632)
+)
+(connector
+	(pt 3568 -1616)
+	(pt 3608 -1616)
+)
+(connector
+	(pt 3568 -1496)
+	(pt 3568 -1616)
+)
+(connector
+	(pt 3416 -1600)
+	(pt 3608 -1600)
 	(bus)
+)
+(connector
+	(pt 3480 -1584)
+	(pt 3608 -1584)
+	(bus)
+)
+(connector
+	(pt 3480 -1712)
+	(pt 3480 -1584)
+	(bus)
+)
+(connector
+	(pt 4392 -1632)
+	(pt 4000 -1632)
+	(bus)
+)
+(connector
+	(pt 4392 -1768)
+	(pt 4392 -1632)
+	(bus)
+)
+(connector
+	(pt 2976 -1480)
+	(pt 3544 -1480)
+)
+(connector
+	(pt 3008 -1496)
+	(pt 3568 -1496)
 )
 (connector
 	(pt 5384 -1496)

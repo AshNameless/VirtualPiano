@@ -2,7 +2,7 @@
 -------------------------------------------------------------------------
 --my_filter
 --
--- 功能: 10阶低通滤波器, 接受audio_clter给出的滤波器标号, 自动调节参数并完成滤波功能
+-- 功能: filter_order(偶数)阶低通滤波器, 接受audio_clter给出的滤波器标号, 自动调节参数并完成滤波功能
 --
 -- 描述: 
 -------------------------------------------------------------------------
@@ -39,50 +39,24 @@ end entity my_filter;
 -------------------------------------------------------
 -------------------------------------------------------
 architecture bhv of my_filter is
-	--中间积的宽度
-	constant product_width : integer := coeff_width + input_wave_width;
+	--系数个数
+	constant coeff_num : integer := filter_order/2;
+	
 	--滤波器标号
 	signal filter_num_unsigned : unsigned(filter_num_width - 1 downto 0) := (others => '0');
 	signal filter_num : integer range 0 to 24 := 0;
-	--乘法系数
-	signal coeff1 : signed(coeff_width - 1 downto 0 ) := (others => '0');
-	signal coeff2 : signed(coeff_width - 1 downto 0 ) := (others => '0');
-	signal coeff3 : signed(coeff_width - 1 downto 0 ) := (others => '0');
-	signal coeff4 : signed(coeff_width - 1 downto 0 ) := (others => '0');
-	signal coeff5 : signed(coeff_width - 1 downto 0 ) := (others => '0');
-	signal coeff6 : signed(coeff_width - 1 downto 0 ) := (others => '0');
 	
-	--11个乘法积
-	signal product1 : signed(product_width - 1 downto 0) := (others => '0');
-	signal product2 : signed(product_width - 1 downto 0) := (others => '0');
-	signal product3 : signed(product_width - 1 downto 0) := (others => '0');
-	signal product4 : signed(product_width - 1 downto 0) := (others => '0');
-	signal product5 : signed(product_width - 1 downto 0) := (others => '0');
-	signal product6 : signed(product_width - 1 downto 0) := (others => '0');
-	signal product7 : signed(product_width - 1 downto 0) := (others => '0');
-	signal product8 : signed(product_width - 1 downto 0) := (others => '0');
-	signal product9 : signed(product_width - 1 downto 0) := (others => '0');
-	signal product10 : signed(product_width - 1 downto 0) := (others => '0');
-	signal product11 : signed(product_width - 1 downto 0) := (others => '0');
-	
-	--第一层和
-	signal sum1_1 : signed(output_data_width - 1 downto 0) := (others => '0');
-	signal sum1_2 : signed(output_data_width - 1 downto 0) := (others => '0');
-	signal sum1_3 : signed(output_data_width - 1 downto 0) := (others => '0');
-	signal sum1_4 : signed(output_data_width - 1 downto 0) := (others => '0');
-	signal sum1_5 : signed(output_data_width - 1 downto 0) := (others => '0');
-	--第二层和
-	signal sum2_1 : signed(output_data_width - 1 downto 0) := (others => '0');
-	signal sum2_2 : signed(output_data_width - 1 downto 0) := (others => '0');
-	signal sum2_3 : signed(output_data_width - 1 downto 0) := (others => '0');
+	--乘法系数. filter_coeff_type类型在filter_paras中定义
+	signal coeff : filter_coeff_type(0 to coeff_num) := (others => (others => '0'));
+	--乘积
+	signal product : product_type(0 to filter_order) := (others => (others => '0'));
 	
 	--定义输入数据流水线
 	type pipeline_type is array(natural range<>) of signed(input_wave_width - 1 downto 0);
 	signal pipeline_in : pipeline_type(0 to filter_order) := (others => (others => '0'));
 	
-	--乘法积type
-	type product_type is array(natural range<>) of signed(product_width - 1 downto 0);
-	signal product : product_type(0 to filter_order) := (others => (others => '0'));
+	--和
+	signal sum : signed(output_data_width - 1 downto 0) := (others => '0');
 	
 	--采样时钟
 	signal clk_sample : std_logic := '0';
@@ -91,7 +65,7 @@ architecture bhv of my_filter is
 begin
 	filter_num_unsigned <= unsigned(filter_num_in);
 	--输出
-	filtered_wave <= std_logic_vector(sum2_1 + sum2_2 + sum2_3);
+	filtered_wave <= std_logic_vector(sum);
 	
 	--采样时钟生成
 	process(rst_n, clk_50m)
@@ -123,18 +97,13 @@ begin
 		end if;
 	end process;
 	
-	--乘法器系数跟随滤波器标号改变
+	--乘法系数跟随滤波器标号改变
 	process(rst_n, filter_num)
 	begin
 		if(rst_n = '0') then
-			coeff1 <= (others => '0');
-			coeff2 <= (others => '0');
-			coeff3 <= (others => '0');
-			coeff4 <= (others => '0');
-			coeff5 <= (others => '0');
-			coeff6 <= (others => '0');
+			coeff <= (others => (others => '0'));
 		else
-			filnum2paras(filter_num, coeff1, coeff2, coeff3, coeff4, coeff5, coeff6);
+			filnum2paras(filter_num, coeff);
 		end if;
 	end process;
 	
@@ -150,31 +119,32 @@ begin
 		end if;
 	end process;
 	
-	--乘积
-	product1 <= pipeline_in(0) * coeff1;
-	product2 <= pipeline_in(1) * coeff2;
-	product3 <= pipeline_in(2) * coeff3;
-	product4 <= pipeline_in(3) * coeff4;
-	product5 <= pipeline_in(4) * coeff5;
-	product6 <= pipeline_in(5) * coeff6;
-	product7 <= pipeline_in(6) * coeff5;
-	product8 <= pipeline_in(7) * coeff4;
-	product9 <= pipeline_in(8) * coeff3;
-	product10 <= pipeline_in(9) * coeff2;
-	product11 <= pipeline_in(10) * coeff1;
+	--乘法操作
+	process(rst_n, coeff, pipeline_in)
+	begin
+		if(rst_n = '0') then
+			product <= (others => (others => '0'));
+		else
+			for i in 0 to filter_order loop
+				if(i <= coeff_num) then
+					product(i) <= coeff(i)*pipeline_in(i);
+				else
+					product(i) <= coeff(filter_order-i)*pipeline_in(i);
+				end if;
+			end loop;
+		end if;
+	end process;
 	
 	--求和
-	sum1_1 <= product1 + product2;
-	sum1_2 <= product3 + product4;
-	sum1_3 <= product5 + product6;
-	sum1_4 <= product7 + product8;
-	sum1_5 <= product9 + product10;
-	sum2_1 <= sum1_1 + sum1_2;
-	sum2_2 <= sum1_3 + sum1_4;
-	sum2_3 <= sum1_5 + product11;
+	process(rst_n, product)
+	begin
+		if(rst_n = '0') then
+			sum <= (others => '0');
+		else
+			sum_of_product(product, sum);
+		end if;
+	end process;
 	
-
-
 end architecture bhv;
 
 

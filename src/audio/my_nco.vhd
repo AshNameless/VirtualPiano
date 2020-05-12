@@ -20,7 +20,8 @@ use work.filter_paras.all;
 entity my_nco is
 generic(
 	input_data_width : integer := NCO_countnum_width;
-	output_data_width : integer := NCO_wave_width
+	output_data_width : integer := NCO_wave_width;
+	countnum_max : integer := NCO_countnum_max
 );
 port(
 	rst_n : in std_logic;
@@ -35,8 +36,8 @@ end entity my_nco;
 -------------------------------------------------------
 architecture bhv of my_nco is
 	--内部计数器反转值. 转换成整数
-	signal count_threshold : integer := 0;
-	signal wave_count : integer := 0;
+	signal count_threshold : integer range 0 to countnum_max := 0;
+	signal wave_count : integer range 0 to countnum_max := 0;
 	signal wave_flag : std_logic := '0';
 	
 	--由于检测到无按键的时候, ASDR还有release阶段. 如果直接把计数翻转值置0的话, 将不再有
@@ -45,8 +46,8 @@ architecture bhv of my_nco is
 	signal countnum_inside : unsigned(input_data_width - 1 downto 0) := (others => '0');
 	
 	--倍频计数器. 
-	signal double_threshold : integer := 0;
-	signal double_count : integer := 0;
+	signal double_threshold : integer range 0 to countnum_max := 0;
+	signal double_count : integer range 0 to countnum_max := 0;
 	signal double_flag : std_logic := '0';
 	
 	--两个方波
@@ -59,16 +60,14 @@ begin
 	--设置输出
 	nco_waveout <= std_logic_vector(origin_wave/2 + origin_wave/4 + double_wave);
 	
-	process(rst_n, clk_50m)
+	process(rst_n, countnum_inside)
 	begin
 		if(rst_n = '0') then
 			count_threshold <= 0;
-		elsif(clk_50m'event and clk_50m = '0') then
-			if(countnum_inside = 0) then
-				count_threshold <= count_threshold;
-			else
-				count_threshold <= to_integer(countnum_inside);
-			end if;
+		elsif(countnum_inside = 0) then
+			count_threshold <= count_threshold;
+		else
+			count_threshold <= to_integer(countnum_inside);
 		end if;
 	end process;
 	

@@ -60,7 +60,7 @@ init : PROCESS
 -- variable declarations                                     
 BEGIN                                                        
 rst_n <= '0';  
-filter_num_in <= "00001";
+filter_num_in <= "11000";
 wait for 100 ns;
 rst_n <= '1';
 
@@ -77,9 +77,9 @@ END PROCESS always;
 
 process
 begin
-wait for 3.8314 ms;
+wait for 1 ms;
 nco_wave_in <= (5 => '0', others => '1');
-wait for 3.8314 ms;
+wait for 1 ms;
 nco_wave_in <= (5 => '1', others => '0');
 end process;
 END my_filter_arch;
