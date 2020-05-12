@@ -16,11 +16,12 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.constants.all;
+use work.filter_paras.all;
 -------------------------------------------------------
 -------------------------------------------------------
 entity ADSR is
 generic(
-	input_data_width : integer := NCO_wave_width;
+	input_data_width : integer := filter_output_width;
 	output_data_width : integer := ADSR_note_out_width
 );
 port(
@@ -47,11 +48,11 @@ architecture bhv of ADSR is
 	constant counterD_threshold : signed := to_signed(300000, counter_width);   --6ms
 	constant counterR_threshold : signed := to_signed(30000000, counter_width);   --600ms
 	--ADSR的参数.由于无浮点，实数又不可综合，因此用mod运算来控制幅值调制参数
-	constant counterA_divisor : integer := 293;                                  --300000/2047取整为49
-	constant counterD_start : signed := to_signed(2047, counter_width);        --decay从最大值2047开始降低
-	constant counterD_divisor : integer := 293;                                 --300000/1024取整为293
-	constant sustain_level : signed := to_signed(1023, counter_width);         --sustain阶段保持的幅值调制系数，也是release下降的起点
-	constant counterR_divisor : integer := 29297;                              --30000000/1024取整为29297
+	constant counterA_divisor : integer := 9677;                                  --300000/31取整为9677
+	constant counterD_start : signed := to_signed(31, counter_width);        --decay从最大值2047开始降低
+	constant counterD_divisor : integer := 9677;                                 --300000/31取整为9677
+	constant sustain_level : signed := to_signed(16, counter_width);         --sustain阶段保持的幅值调制系数，也是release下降的起点
+	constant counterR_divisor : integer := 1875000;                              --30000000/16取整为
 	
    --attack,decay,release阶段的计数器及其计数使能信号
    signal counter_A : signed(counter_width - 1 downto 0) := (others => '0');
@@ -67,11 +68,12 @@ architecture bhv of ADSR is
 	signal next_state : state := idle;
 	 
 	--定义幅值调制参数
+	constant amplitude_cutoff_width : integer := 24-input_data_width;
 	signal amplitude_modulation : signed(counter_width -1 downto 0) := (others => '0');
 	 
 begin
-	--输出note信号为amplitude_modulation低12位与NCO_wave_in的乘积，单独赋值在外
-	note <= std_logic_vector(amplitude_modulation(input_data_width - 1 downto 0) * signed(NCO_wave_in));
+	--输出note信号为amplitude_modulation的低位与NCO_wave_in的乘积，单独赋值在外
+	note <= std_logic_vector(amplitude_modulation(amplitude_cutoff_width - 1 downto 0) * signed(NCO_wave_in));
 	
     --ADR三个计数器进程
 	counterA_pro : process(clk_50m, rst_n, counterA_en)

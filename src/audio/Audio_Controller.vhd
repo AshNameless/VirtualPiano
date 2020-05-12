@@ -6,7 +6,7 @@
 --
 -- 描述: 只保留24位信息中第nbxth_of_pkey个1, 也就只保留一个音符. 产生note_on
 --       note_change等信号. 通过对比当前音符和上一音符来判断note_change是否该
---       置位, 由当前音符是否变为0来判断是否松键.
+--       置位, 由当前音符是否变为0来判断是否松键. 同时产生滤波器选择信号
 -------------------------------------------------------------------------
 -------------------------------------------------------------------------
 library ieee;
@@ -18,7 +18,8 @@ entity Audio_Controller is
 generic(
 	input_data_width : integer := notes_data_width;
 	output_data_width : integer := NCO_countnum_width;
-	nbxth_of_pkey : integer := 3
+	nbxth_of_pkey : integer := 1; --监测第几个被按下的键
+	filter_num_width : integer := filter_number_width --滤波器标号宽度
 );
 port(
 	--输入
@@ -26,7 +27,8 @@ port(
 	clk_50m : in std_logic;
 	notes_data_in : in std_logic_vector(input_data_width - 1 downto 0);   --识别模块输出的音符信息
 	--输出
-	nco_countnum : out std_logic_vector(NCO_countnum_width - 1 downto 0);
+	filter_num : out std_logic_vector(filter_num_width - 1 downto 0);
+	nco_countnum : out std_logic_vector(output_data_width - 1 downto 0);
 	note_on : out std_logic;                                              --表示音符是否按下，输出到ADSR
 	note_change : out std_logic                                           --表示音符是否有变动，输出到ADSR
 );
@@ -106,22 +108,24 @@ begin
 	begin
 		case cur_state is
 		when idle =>
+			filter_num <= (others => '0');
 			nco_countnum <= (others => '0');
 			note_on <= '0';
 			note_change <= '0';
 		
 		--procedure详见constants
 		when pressed =>
-			note2NCOcountnum(cur_note, nco_countnum);
+			note2NCOcountnum(cur_note, nco_countnum, filter_num);
 			note_on <= '1';
 			note_change <= '0';
 			
 		when changed =>
-			note2NCOcountnum(cur_note, nco_countnum);
+			note2NCOcountnum(cur_note, nco_countnum, filter_num);
 			note_on <= '1';
 			note_change <= '1';
 		
 		when others =>
+			filter_num <= (others => '0');
 			nco_countnum <= (others => '0');
 			note_on <= '0';
 			note_change <= '0';

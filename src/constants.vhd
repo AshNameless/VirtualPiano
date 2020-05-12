@@ -52,12 +52,22 @@ package constants is
 	
 	
 	
+	-------------------------
+	--filter
+	-------------------------
+	--滤波器的详尽系数以及转换子程序在滤波器package中
+	constant filter_number_width : integer := 5;  --24个滤波器, 5位表示即可
+	
+	
+	
+	
+	
 	
 	-------------------------
 	--my_nco
 	-------------------------
-	constant NCO_countnum_width : integer := 17;        --输入到 NCO 的相位step参数
-	constant NCO_wave_width : integer := 12 ;        --NCO 输出波形的位宽
+	constant NCO_countnum_width : integer := 17;        --输入到的计数值
+	constant NCO_wave_width : integer := 6;        --NCO 输出波形的位宽
 	--对应的25个NCO计数器翻转值.
 	constant NCO_countnum_note_0: std_logic_vector(NCO_countnum_width - 1 downto 0) := (others => '0');
 	constant NCO_countnum_note_1: std_logic_vector(NCO_countnum_width - 1 downto 0) := "10111010101000100";
@@ -85,35 +95,11 @@ package constants is
 	constant NCO_countnum_note_23: std_logic_vector(NCO_countnum_width - 1 downto 0) := "00110100010111111";
 	constant NCO_countnum_note_24: std_logic_vector(NCO_countnum_width - 1 downto 0) := "00110001011011110";
 	
---	constant phase_note_0: std_logic_vector(NCO_phase_width - 1 downto 0) := (others => '0');
---	constant phase_note_1: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000000101010110111010110";
---	constant phase_note_2: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000000101101011010011110";
---	constant phase_note_3: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000000110000000111010011";
---	constant phase_note_4: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000000110010111110011010";
---	constant phase_note_5: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000000110110000000011010";
---	constant phase_note_6: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000000111001001101111011";
---	constant phase_note_7: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000000111100100111101011";
---	constant phase_note_8: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001000000001110010111";
---	constant phase_note_9: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001000100000010110010";
---	constant phase_note_10: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001001000000101101111";
---	constant phase_note_11: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001001100011000000101";
---	constant phase_note_12: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001010000111010101111";
---	constant phase_note_13: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001010101101110101100";
---	constant phase_note_14: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001011010110100111100";
---	constant phase_note_15: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001100000001110100110";
---	constant phase_note_16: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001100101111100110100";
---	constant phase_note_17: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001101100000000110011";
---	constant phase_note_18: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001110010011011110110";
---	constant phase_note_19: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000001111001001111010110";
---	constant phase_note_20: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000010000000011100101111";
---	constant phase_note_21: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000010001000000101100100";
---	constant phase_note_22: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000010010000001011011110";
---	constant phase_note_23: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000010011000110000001011";
---	constant phase_note_24: std_logic_vector(NCO_phase_width - 1 downto 0) := "0000010100001110101011111";
-	
-	--将音符信号转化为对应的NCO phase_step，用以控制NCO输出频率，暂未实现
+	--将音符信号转化为对应的NCO phase_step，用以控制NCO输出频率，同时产生滤波器的标号值. 由于滤波器是后面添加, 
+	--此处直接将功能集成在这里了.
 	procedure note2NCOcountnum(signal ndata : in std_logic_vector(notes_data_width - 1 downto 0);
-		                       signal x : out std_logic_vector(NCO_countnum_width - 1 downto 0));
+		                       signal x : out std_logic_vector(NCO_countnum_width - 1 downto 0);
+									  signal num : out std_logic_vector(filter_number_width - 1 downto 0));
 
 	
 	
@@ -356,36 +342,37 @@ package body constants is
 	end function rawnote2note;
 ----------------------------------------------------------
 ----------------------------------------------------------
-	--从音频信号得到NCO的计数值用以控制频率
+	--从音频信号得到NCO的计数值用以控制频率. 同时产生滤波器的标号值
 	procedure note2NCOcountnum(signal ndata : in std_logic_vector(notes_data_width - 1 downto 0);
-		                       signal x : out std_logic_vector(NCO_countnum_width - 1 downto 0)) is
+		                       signal x : out std_logic_vector(NCO_countnum_width - 1 downto 0);
+									  signal num : out std_logic_vector(filter_number_width - 1 downto 0)) is
 		begin
 			case ndata is
-			when note_1 =>	x <= NCO_countnum_note_1;
-			when note_2 =>	x <= NCO_countnum_note_2;
-			when note_3 =>	x <= NCO_countnum_note_3;
-			when note_4 =>	x <= NCO_countnum_note_4;
-			when note_5 =>	x <= NCO_countnum_note_5;
-			when note_6 =>	x <= NCO_countnum_note_6;
-			when note_7 =>	x <= NCO_countnum_note_7;
-			when note_8 =>	x <= NCO_countnum_note_8;
-			when note_9 =>	x <= NCO_countnum_note_9;
-			when note_10 => x <= NCO_countnum_note_10;
-			when note_11 => x <= NCO_countnum_note_11;
-			when note_12 => x <= NCO_countnum_note_12;
-			when note_13 => x <= NCO_countnum_note_13;
-			when note_14 => x <= NCO_countnum_note_14;
-			when note_15 => x <= NCO_countnum_note_15;
-			when note_16 => x <= NCO_countnum_note_16;
-			when note_17 => x <= NCO_countnum_note_17;
-			when note_18 => x <= NCO_countnum_note_18;
-			when note_19 => x <= NCO_countnum_note_19;
-			when note_20 => x <= NCO_countnum_note_20;
-			when note_21 => x <= NCO_countnum_note_21;
-			when note_22 => x <= NCO_countnum_note_22;
-			when note_23 => x <= NCO_countnum_note_23;
-			when note_24 => x <= NCO_countnum_note_24;
-			when others => x <= (others => '0');
+			when note_1 =>	x <= NCO_countnum_note_1; num <= "00001";
+			when note_2 =>	x <= NCO_countnum_note_2; num <= "00010";
+			when note_3 =>	x <= NCO_countnum_note_3; num <= "00011";
+			when note_4 =>	x <= NCO_countnum_note_4; num <= "00100";
+			when note_5 =>	x <= NCO_countnum_note_5; num <= "00101";
+			when note_6 =>	x <= NCO_countnum_note_6; num <= "00110";
+			when note_7 =>	x <= NCO_countnum_note_7; num <= "00111";
+			when note_8 =>	x <= NCO_countnum_note_8; num <= "01000";
+			when note_9 =>	x <= NCO_countnum_note_9; num <= "01001";
+			when note_10 => x <= NCO_countnum_note_10; num <= "01010";
+			when note_11 => x <= NCO_countnum_note_11; num <= "01011";
+			when note_12 => x <= NCO_countnum_note_12; num <= "01100";
+			when note_13 => x <= NCO_countnum_note_13; num <= "01101";
+			when note_14 => x <= NCO_countnum_note_14; num <= "01110";
+			when note_15 => x <= NCO_countnum_note_15; num <= "01111";
+			when note_16 => x <= NCO_countnum_note_16; num <= "10000";
+			when note_17 => x <= NCO_countnum_note_17; num <= "10001";
+			when note_18 => x <= NCO_countnum_note_18; num <= "10010";
+			when note_19 => x <= NCO_countnum_note_19; num <= "10011";
+			when note_20 => x <= NCO_countnum_note_20; num <= "10100";
+			when note_21 => x <= NCO_countnum_note_21; num <= "10101";
+			when note_22 => x <= NCO_countnum_note_22; num <= "10110";
+			when note_23 => x <= NCO_countnum_note_23; num <= "10111";
+			when note_24 => x <= NCO_countnum_note_24; num <= "11000";
+			when others => x <= (others => '0'); num <= (others => '0');
 			end case;
 	end procedure note2NCOcountnum;
 ----------------------------------------------------------
@@ -474,20 +461,6 @@ package body constants is
 		when 51 => x <= ov7670_device_address & x"0700";
 		when 52 => x <= ov7670_device_address & x"1040";
 		when 53 => x <= ov7670_device_address & x"0400";
-		
-		--awb控制参数 magic
---		when 47 => x <= ov7670_device_address & x"4314";
---		when 48 => x <= ov7670_device_address & x"44f0";
---		when 49 => x <= ov7670_device_address & x"4534";
---		when 50 => x <= ov7670_device_address & x"4658";
---		when 51 => x <= ov7670_device_address & x"4728";
---		when 52 => x <= ov7670_device_address & x"483a";
---		when 53 => x <= ov7670_device_address & x"5988";
---		when 54 => x <= ov7670_device_address & x"5a88";
---		when 55 => x <= ov7670_device_address & x"5b44";
---		when 56 => x <= ov7670_device_address & x"5c67";
---		when 57 => x <= ov7670_device_address & x"5d49";
---		when 58 => x <= ov7670_device_address & x"5e0e";
 		when others => x<= (others => '1');
 		end case;
 	end procedure camera_regcount2data;
