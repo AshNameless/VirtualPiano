@@ -84,11 +84,11 @@ begin
 	end process;
 	
 	--获取滤波器标号
-	process(rst_n, clk_sample)
+	process(rst_n, clk_50m)
 	begin
 		if(rst_n = '0') then
 			filter_num <= 0;
-		elsif(clk_sample'event and clk_sample = '0') then
+		elsif(clk_50m'event and clk_50m = '1') then
 			if(filter_num_unsigned = 0) then
 				filter_num <= filter_num;
 			else

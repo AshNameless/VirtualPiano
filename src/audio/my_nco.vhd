@@ -60,16 +60,19 @@ begin
 	--设置输出
 	nco_waveout <= std_logic_vector(origin_wave/2 + origin_wave/4 + double_wave);
 	
-	process(rst_n, countnum_inside)
+	process(rst_n, clk_50m)
 	begin
 		if(rst_n = '0') then
 			count_threshold <= 0;
-		elsif(countnum_inside = 0) then
-			count_threshold <= count_threshold;
-		else
-			count_threshold <= to_integer(countnum_inside);
+		elsif(clk_50m'event and clk_50m = '1') then
+			if(countnum_inside = 0) then
+				count_threshold <= count_threshold;
+			else
+				count_threshold <= to_integer(countnum_inside);
+			end if;
 		end if;
 	end process;
+			
 	
 	--计数进程
 	process(rst_n, clk_50m)

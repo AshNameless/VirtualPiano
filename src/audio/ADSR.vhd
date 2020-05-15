@@ -50,7 +50,7 @@ architecture bhv of ADSR is
 	--ADSR的参数.由于无浮点，实数又不可综合，因此用mod运算来控制幅值调制参数
 	constant counterA_divisor : integer := 9677;                                  --300000/31取整为9677
 	constant counterD_start : signed := to_signed(31, counter_width);        --decay从最大值2047开始降低
-	constant counterD_divisor : integer := 9677;                                 --300000/31取整为9677
+	constant counterD_divisor : integer := 18750;                                 --300000/16取整为18750
 	constant sustain_level : signed := to_signed(16, counter_width);         --sustain阶段保持的幅值调制系数，也是release下降的起点
 	constant counterR_divisor : integer := 1875000;                              --30000000/16取整为
 	

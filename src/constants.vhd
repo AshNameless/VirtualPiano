@@ -137,8 +137,8 @@ package constants is
 	--以下为各配置寄存器的地址及数据，拼接为两个字节. 由于只需要输出,部分寄存器无需配置保存默认值即可。
 	
 	-------------------耳机输出---------------------
-	constant wm8731_left_headphone_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000010" & "011110011";
-	constant wm8731_right_headphone_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000011" & "011100111";
+	constant wm8731_left_headphone_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000010" & "011110111";
+	constant wm8731_right_headphone_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000011" & "011101111";
 	
 	--------------模拟音频路径控制寄存器------------------
 	constant wm8731_analogue_path_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000100" & "000010000"; 

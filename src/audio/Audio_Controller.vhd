@@ -124,11 +124,7 @@ begin
 			note_on <= '1';
 			note_change <= '1';
 		
-		when others =>
-			filter_num <= (others => '0');
-			nco_countnum <= (others => '0');
-			note_on <= '0';
-			note_change <= '0';
+		when others => null;
 		end case;
 	end process;
 
