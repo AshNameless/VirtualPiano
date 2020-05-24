@@ -137,8 +137,8 @@ package constants is
 	--以下为各配置寄存器的地址及数据，拼接为两个字节. 由于只需要输出,部分寄存器无需配置保存默认值即可。
 	
 	-------------------耳机输出---------------------
-	constant wm8731_left_headphone_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000010" & "011110111";
-	constant wm8731_right_headphone_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000011" & "011101111";
+	constant wm8731_left_headphone_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000010" & "011111111";
+	constant wm8731_right_headphone_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000011" & "011111111";
 	
 	--------------模拟音频路径控制寄存器------------------
 	constant wm8731_analogue_path_config : std_logic_vector(wm8731_reg_dwidth - 1 downto 0) := wm8731_device_address & "0000100" & "000010000"; 
@@ -270,15 +270,19 @@ package constants is
 	
 	--琴谱起始横纵坐标. 注意于摄像头所拍摄图像相反, 需要调整
 	constant key_original_x : integer := 0;
-	constant key_original_y : integer := 0;
+	constant key_original_y : integer := 8;
 	
 	--琴键宽度信息
-	constant key_white_width : integer := 22; --白键宽度像素数
-	constant key_black_halfwidth : integer := 10; --黑键宽度像素数的一半
-	constant key_black_length : integer := 80;
+	constant key_white_width : integer := 23; --白键宽度像素数
+	constant key_white_halfwidth : integer := 12;  --白键宽度一半
+	constant key_black_halfwidth : integer := 12; --黑键宽度像素数的一半
+	constant key_black_length : integer := 94;
+	constant key_white_length : integer := 137;
 	
 	--黑白琴键分割行. 为琴键原点行数加上黑键长度
 	constant dividing_line : integer := key_original_x + key_black_length;
+	--超出琴键范围
+	constant out_line : integer := key_original_x + key_white_length;
 	
 	--白键相关数据
 	constant key_white1_start : integer := key_original_y;
@@ -472,47 +476,40 @@ package body constants is
 										signal column : in integer range 0 to ov7670_image_width;
 								      signal key : out std_logic_vector(notes_data_width - 1 downto 0)) is
 	begin
+		--超过琴键范围
+		if(row >= out_line) then
+			null;
 		--在分割线之下, 是白键
-		if(row >= dividing_line) then
-			if(column >= key_white1_start and column <= key_white1_start + key_white_width) then key(notes_data_width - 1) <= '1';
-			elsif(column >= key_white2_start and column <= key_white2_start + key_white_width) then key(notes_data_width - 3) <= '1';
-			elsif(column >= key_white3_start and column <= key_white3_start + key_white_width) then key(notes_data_width - 5) <= '1';
-			elsif(column >= key_white4_start and column <= key_white4_start + key_white_width) then key(notes_data_width - 6) <= '1';
-			elsif(column >= key_white5_start and column <= key_white5_start + key_white_width) then key(notes_data_width - 8) <= '1';
-			elsif(column >= key_white6_start and column <= key_white6_start + key_white_width) then key(notes_data_width - 10) <= '1';
-			elsif(column >= key_white7_start and column <= key_white7_start + key_white_width) then key(notes_data_width - 12) <= '1';
-			elsif(column >= key_white8_start and column <= key_white8_start + key_white_width) then key(notes_data_width - 13) <= '1';
-			elsif(column >= key_white9_start and column <= key_white9_start + key_white_width) then key(notes_data_width - 15) <= '1';
-			elsif(column >= key_white10_start and column <= key_white10_start + key_white_width) then key(notes_data_width - 17) <= '1';
-			elsif(column >= key_white11_start and column <= key_white11_start + key_white_width) then key(notes_data_width - 18) <= '1';
-			elsif(column >= key_white12_start and column <= key_white12_start + key_white_width) then key(notes_data_width - 20) <= '1';
-			elsif(column >= key_white13_start and column <= key_white13_start + key_white_width) then key(notes_data_width - 22) <= '1';
-			elsif(column >= key_white14_start and column <= key_white14_start + key_white_width) then key(notes_data_width - 24) <= '1';
+		elsif(row >= dividing_line) then
+			if(column = key_white1_start + key_white_halfwidth) then key(notes_data_width - 1) <= '1';
+			elsif(column = key_white2_start + key_white_halfwidth) then key(notes_data_width - 3) <= '1';
+			elsif(column = key_white3_start + key_white_halfwidth) then key(notes_data_width - 5) <= '1';
+			elsif(column = key_white4_start + key_white_halfwidth) then key(notes_data_width - 6) <= '1';
+			elsif(column = key_white5_start + key_white_halfwidth) then key(notes_data_width - 8) <= '1';
+			elsif(column = key_white6_start + key_white_halfwidth) then key(notes_data_width - 10) <= '1';
+			elsif(column = key_white7_start + key_white_halfwidth) then key(notes_data_width - 12) <= '1';
+			elsif(column = key_white8_start + key_white_halfwidth) then key(notes_data_width - 13) <= '1';
+			elsif(column = key_white9_start + key_white_halfwidth) then key(notes_data_width - 15) <= '1';
+			elsif(column = key_white10_start + key_white_halfwidth) then key(notes_data_width - 17) <= '1';
+			elsif(column = key_white11_start + key_white_halfwidth) then key(notes_data_width - 18) <= '1';
+			elsif(column = key_white12_start + key_white_halfwidth) then key(notes_data_width - 20) <= '1';
+			elsif(column = key_white13_start + key_white_halfwidth) then key(notes_data_width - 22) <= '1';
+			elsif(column = key_white14_start + key_white_halfwidth) then key(notes_data_width - 24) <= '1';
 			else null;
 			end if;
 			
 		--分割线之上, 是黑键
 		else
-			if(column >= key_black1_center - key_black_halfwidth and column <= key_black1_center + key_black_halfwidth) then 
-				key(notes_data_width - 2) <= '1';
-			elsif(column >= key_black2_center - key_black_halfwidth and column <= key_black2_center + key_black_halfwidth) then 
-				key(notes_data_width - 4) <= '1';
-			elsif(column >= key_black3_center - key_black_halfwidth and column <= key_black3_center + key_black_halfwidth) then 
-				key(notes_data_width - 7) <= '1';
-			elsif(column >= key_black4_center - key_black_halfwidth and column <= key_black4_center + key_black_halfwidth) then 
-				key(notes_data_width - 9) <= '1';
-			elsif(column >= key_black5_center - key_black_halfwidth and column <= key_black5_center + key_black_halfwidth) then 
-				key(notes_data_width - 11) <= '1';
-			elsif(column >= key_black6_center - key_black_halfwidth and column <= key_black6_center + key_black_halfwidth) then 
-				key(notes_data_width - 14) <= '1';
-			elsif(column >= key_black7_center - key_black_halfwidth and column <= key_black7_center + key_black_halfwidth) then 
-				key(notes_data_width - 16) <= '1';
-			elsif(column >= key_black8_center - key_black_halfwidth and column <= key_black8_center + key_black_halfwidth) then 
-				key(notes_data_width - 19) <= '1';
-			elsif(column >= key_black9_center - key_black_halfwidth and column <= key_black9_center + key_black_halfwidth) then 
-				key(notes_data_width - 21) <= '1';
-			elsif(column >= key_black10_center - key_black_halfwidth and column <= key_black10_center + key_black_halfwidth) then 
-				key(notes_data_width - 23) <= '1';
+			if(column = key_black1_center) then key(notes_data_width - 2) <= '1';
+			elsif(column = key_black2_center) then key(notes_data_width - 4) <= '1';
+			elsif(column = key_black3_center) then key(notes_data_width - 7) <= '1';
+			elsif(column = key_black4_center) then key(notes_data_width - 9) <= '1';
+			elsif(column = key_black5_center) then key(notes_data_width - 11) <= '1';
+			elsif(column = key_black6_center) then key(notes_data_width - 14) <= '1';
+			elsif(column = key_black7_center) then key(notes_data_width - 16) <= '1';
+			elsif(column = key_black8_center) then key(notes_data_width - 19) <= '1';
+			elsif(column = key_black9_center) then key(notes_data_width - 21) <= '1';
+			elsif(column = key_black10_center) then key(notes_data_width - 23) <= '1';
 			else null;
 			end if;
 		end if;

@@ -55,7 +55,7 @@ architecture bhv of audio_channel_merge is
 	
 begin
 	--输入赋值到信号
-	note_valid <= note_valid1 & note_valid2 & note_valid3 & note_valid4 & note_valid5;
+	note_valid <= note_valid5 & note_valid4 & note_valid3 & note_valid2 & note_valid1;
 	note(0) <= signed(note_data1);
 	note(1) <= signed(note_data2);
 	note(2) <= signed(note_data3);

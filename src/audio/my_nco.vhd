@@ -7,7 +7,7 @@
 -- 描述: 由于方波不含偶次谐波, 因此生成的波形应当包含其倍频方波. 参考钢琴音色系统
 --       论文中中频钢琴一次谐波与二次谐波之比约为1:0.279, 也即一次谐波占约0.782.
 --       此处将其简化为0.75 + 0.25, 0.75 = 0.5 + 0.25, 可以化成移位操作. 又可以
---       从三次谐波与二次谐波的角度考虑, 简化为0.875 + 0.125. 此处采用前者
+--       从三次谐波与二次谐波的角度考虑, 简化为0.875 + 0.125. 此处采用后者
 -------------------------------------------------------------------------
 -------------------------------------------------------------------------
 library ieee;
@@ -58,7 +58,7 @@ begin
 	countnum_inside <= unsigned(countnum);
 	double_threshold <= count_threshold/2;
 	--设置输出
-	nco_waveout <= std_logic_vector(origin_wave/2 + origin_wave/4 + double_wave);
+	nco_waveout <= std_logic_vector(origin_wave + double_wave);
 	
 	process(rst_n, clk_50m)
 	begin
@@ -112,9 +112,9 @@ begin
 		else
 			--原频率波形
 			if(wave_flag = '0') then
-				origin_wave <= to_signed(-32, output_data_width);
+				origin_wave <= to_signed(-28, output_data_width);
 			else
-				origin_wave <= to_signed(31, output_data_width);
+				origin_wave <= to_signed(28, output_data_width);
 			end if;
 			--倍频波形只生成-4~3
 			if(double_flag = '0') then
