@@ -62,7 +62,7 @@ begin
 	note(3) <= signed(note_data4);
 	note(4) <= signed(note_data5);
 	--输出. 为增加扩展性可以写成for循环, 类比滤波器求和. 
-	note2codec <= std_logic_vector(note_out(0) + note_out(1) + note_out(2) + note_out(3) + note_out(4));
+	note2codec <= std_logic_vector(note(0) + note(1) + note(2) + note(3) + note(4));
 	
 	--监测1的个数
 	process(rst_n, note_valid)
@@ -86,21 +86,21 @@ begin
 	note_divisor <= to_signed(valid_count, divisor_width);--1的个数转变为signed类型
 	
 	--对输入数据进行幅度调整. 有多少个通道那么每个通道就减小多少倍
-	process(rst_n, note, note_divisor)
-		
-	begin
-		if(rst_n = '0') then
-			note_out <= (others => (others => '0'));
-		else
-			for i in 0 to channel_num - 1 loop
-				if(note_valid(i) = '1') then
-					note_out(i) <= note(i)/note_divisor;
-				else
-					note_out(i) <= (others => '0');
-				end if;
-			end loop;
-		end if;
-	end process;
+--	process(rst_n, note, note_divisor)
+--		
+--	begin
+--		if(rst_n = '0') then
+--			note_out <= (others => (others => '0'));
+--		else
+--			for i in 0 to channel_num - 1 loop
+--				if(note_valid(i) = '1') then
+--					note_out(i) <= note(i)/note_divisor;
+--				else
+--					note_out(i) <= (others => '0');
+--				end if;
+--			end loop;
+--		end if;
+--	end process;
 	
 end architecture bhv;
 

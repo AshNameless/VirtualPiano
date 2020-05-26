@@ -270,12 +270,12 @@ package constants is
 	
 	--琴谱起始横纵坐标. 注意于摄像头所拍摄图像相反, 需要调整
 	constant key_original_x : integer := 0;
-	constant key_original_y : integer := 8;
+	constant key_original_y : integer := 10;
 	
 	--琴键宽度信息
-	constant key_white_width : integer := 23; --白键宽度像素数
-	constant key_white_halfwidth : integer := 12;  --白键宽度一半
-	constant key_black_halfwidth : integer := 12; --黑键宽度像素数的一半
+	constant key_white_width : integer := 22; --白键宽度像素数
+	constant key_white_halfwidth : integer := 11;  --白键宽度一半
+	constant key_black_halfwidth : integer := 11; --黑键宽度像素数的一半
 	constant key_black_length : integer := 94;
 	constant key_white_length : integer := 137;
 	
@@ -464,7 +464,7 @@ package body constants is
 		when 50 => x <= ov7670_device_address & x"4cff";
 		--曝光时间控制. 设置较低效果较好AEC[15 to 0] = x"07"[5 to 0] & x"10"[7 to 0] & x"04"[1 to 0]
 		when 51 => x <= ov7670_device_address & x"0700";
-		when 52 => x <= ov7670_device_address & x"1040";
+		when 52 => x <= ov7670_device_address & x"1070";
 		when 53 => x <= ov7670_device_address & x"0400";
 		when others => x<= (others => '1');
 		end case;
